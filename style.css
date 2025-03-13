@@ -1,0 +1,83 @@
+#container {
+    display: flex;
+    flex-direction: row;
+}
+
+#sidebar {
+    display: flex;
+    flex-direction: column;
+}
+
+#title {
+    align-self: center;
+    font-size: 2em;
+    font-weight: bold;
+    margin: 1em;
+}
+
+#controlPanel {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.controlButtons {
+    margin: 1em;
+    padding: 0.5em 1em;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+}
+
+#viewPanel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#cameraPreview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#previewTitle {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 1em;
+}
+
+#videoInput {
+    width: 640px;
+    height: 360px;
+}
+
+#previewCanvas {
+    display: none;
+    width: 640px;
+    height: 480px;
+}
+
+#resultPlot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#plotContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+#plotContent {
+    width: 640px;
+    height: 360px;
+}
+
+#plotCanvas {
+    width: 640px;
+    height: 360px;
+}

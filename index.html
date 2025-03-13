@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <script type="module" src="./main.js"></script>
+</head>
+<body>
+    <div id="container">
+        <div id="sidebar">
+            <div id="title">ME-rPPG Demo</div>
+            <div id="description">
+                <p>This application is still under maintenance.</p>
+                <p>Capture your face with your camera on device to measure your heart rate.</p>
+                <p>Press the button to start the measurement.</p>
+                <p>All data is captured and used locally. Feel free with your privacy.</p>
+                <div>
+                    Known issues:
+                    <ul>
+                        <li>Only 30fps camera is supported by now.</li>
+                        <li>MediaPipe Face Mesh may fail to be loaded. If so, do refresh the page.</li>
+                        <li>Low quality cameras may lead to biased results</li>
+                    </ul>
+                </div>
+            </div>
+            <div id="controlPanel">
+                <button id="switchButton" class="controlButtons">Start</button>
+            </div>
+            <div id="debugInfo">
+                <div id="inferenceDelay">
+                    Inference Delay:&nbsp;<span id="inferenceDelayValue">NaN</span>&nbsp;ms
+                </div>
+            </div>
+        </div>
+        <div id="viewPanel">
+            <div id="cameraPreview">
+                <div id="previewTitle">Camera Preview</div>
+                <video id="videoInput"></video>
+                <canvas id="previewCanvas"></canvas>
+            </div>
+            <div id="resultPlot">
+                <div id="plot">
+                    <div id="plotContainer">
+                        <div id="plotContent">
+                            <canvas id="plotCanvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
