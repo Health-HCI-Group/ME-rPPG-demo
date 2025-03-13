@@ -68,6 +68,7 @@ cameraButton.addEventListener("click", toggleCamera);
 
 const onnxWorker = new Worker("onnxWorker.js");
 const plotWorker = new Worker("plotWorker.js");
+const welchWorker = new Worker("welchWorker.js");
 
 onnxWorker.onmessage = (event) => {
     const { output, delay } = event.data;

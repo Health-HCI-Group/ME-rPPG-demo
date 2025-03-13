@@ -1,14 +1,22 @@
 importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
 
 let welchSession;
+let hrSession;
 
 ort.env.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/";
 
-ort.InferenceSession.create("welch.onnx", {
+ort.InferenceSession.create("welch_psd.onnx", {
     executionProviders: ["wasm"],
-}).then((session) => {
+}).then(async (session) => {
     welchSession = session;
     console.log("Welch Session created");
+});
+
+ort.InferenceSession.create("get_hr.onnx", {
+    executionProviders: ["wasm"],
+}).then((session) => {
+    hrSession = session;
+    console.log("HR Session created");
 });
 
 self.onmessage = async (event) => {
