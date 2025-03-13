@@ -126,6 +126,7 @@ faceMesh.onResults(async (results) => {
             input[index * 3 + 1] = imageData.data[i + 1] / 255;
             input[index * 3 + 2] = imageData.data[i + 2] / 255;
         }
+        console.log(`New Input`);
         onnxWorker.postMessage({input});
     }
 });
@@ -171,6 +172,5 @@ async function processFrame(now, metadata) {
         previewCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
         await faceMesh.send({image: video});
     }
-    console.log(`New Frame`)
     video.requestVideoFrameCallback(processFrame);
 }
