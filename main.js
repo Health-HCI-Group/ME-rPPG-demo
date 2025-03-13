@@ -23,6 +23,8 @@ let isCameraOn = false;
 
 async function startCamera() {
     try {
+        console.log(`Face Mesh OK state: ${!!FaceMesh}`);
+        console.log(`faceMesh instance state: ${!!faceMesh}`);
         stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 width: {
