@@ -171,5 +171,6 @@ async function processFrame(now, metadata) {
         previewCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
         await faceMesh.send({image: video});
     }
+    console.log(`New Frame`)
     video.requestVideoFrameCallback(processFrame);
 }
