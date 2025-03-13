@@ -12,6 +12,7 @@ const faceCtx = faceCanvas.getContext("2d");
 const plotCanvas = document.getElementById("plotCanvas");
 const plotCtx = plotCanvas.getContext("bitmaprenderer");
 const inferenceDelayValue = document.getElementById("inferenceDelayValue");
+const heartRateValue = document.getElementById("heartRateValue");
 
 video.addEventListener('loadedmetadata', () => {
     previewCanvas.width = video.videoWidth;
@@ -21,11 +22,11 @@ video.addEventListener('loadedmetadata', () => {
 let stream = null;
 let isCameraOn = false;
 
-async function startCamera() {
+function startCamera() {
     try {
         console.log(`Face Mesh OK state: ${!!FaceMesh}`);
         console.log(`faceMesh instance state: ${!!faceMesh}`);
-        stream = await navigator.mediaDevices.getUserMedia({
+        navigator.mediaDevices.getUserMedia({
             video: {
                 width: {
                     ideal: 640,
@@ -36,12 +37,14 @@ async function startCamera() {
                 frameRate: 30,
             },
             audio: false,
+        }).then((mediaStream) => {
+            stream = mediaStream;
+            video.srcObject = stream;
+            video.play();
+            isCameraOn = true;
+            cameraButton.textContent = "Stop Camera";
+            video.requestVideoFrameCallback(processFrame);
         });
-        video.srcObject = stream;
-        video.play();
-        isCameraOn = true;
-        cameraButton.textContent = "Stop Camera";
-        video.requestVideoFrameCallback(processFrame);
     } catch (error) {
         console.error("Error accessing camera:", error);
         alert("Unable to start camera");
@@ -62,7 +65,7 @@ function toggleCamera() {
     if (isCameraOn) {
         stopCamera();
     } else {
-        startCamera().then();
+        startCamera();
     }
 }
 
@@ -97,7 +100,7 @@ plotWorker.onmessage = (event) => {
 
 welchWorker.onmessage = (event) => {
     const { hr } = event.data;
-    console.log(`HR: ${hr}`);
+    heartRateValue.textContent = hr.toFixed(1);
 }
 
 const faceMesh = new FaceMesh({
