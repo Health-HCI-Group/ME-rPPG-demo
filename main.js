@@ -129,6 +129,7 @@ faceMesh.onResults(async (results) => {
             input[index * 3 + 1] = imageData.data[i + 1] / 255;
             input[index * 3 + 2] = imageData.data[i + 2] / 255;
         }
+        console.log(`New Input`);
         onnxWorker.postMessage({input});
     }
 });
