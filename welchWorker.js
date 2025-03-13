@@ -26,6 +26,10 @@ self.onmessage = async (event) => {
     }
     const startTime = Date.now();
     const { input } = event.data;
-    const inputData = new ort.Tensor("float32", input, [1, input.length]);
+    const inputData = new ort.Tensor("float32", input, [1, 1, input.length]);
     const outputs = await welchSession.run({ input: inputData });
+    const freqs = outputs["freqs"];
+    const psd = outputs["psd"];
+    const hr = (await hrSession.run({freqs, psd}))["hr"]["cpuData"]["0"];
+    self.postMessage({hr});
 };
