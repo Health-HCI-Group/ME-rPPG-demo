@@ -71,7 +71,29 @@ function toggleCamera() {
 
 cameraButton.addEventListener("click", toggleCamera);
 
-const faceMeshWorker = new Worker("faceMeshWorker.js");
+// const landmarkerWorker = new Worker("faceMeshWorker.js");
+
+let vision;
+let faceLandmarker;
+
+mpTasksVision.FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
+).then((v) => {vision = v;});
+
+mpTasksVision.FaceLandmarker.createFromOptions(
+    vision,
+    {
+        baseOptions: {
+            modelAssetPath: "./",
+            delegate: "CPU",
+        },
+    },
+).then((landmarker) => {
+    faceLandmarker = landmarker;
+    console.log("Face Landmarker loaded");
+});
+
+
 const onnxWorker = new Worker("onnxWorker.js");
 const plotWorker = new Worker("plotWorker.js");
 const welchWorker = new Worker("welchWorker.js");
@@ -82,10 +104,20 @@ let welchCount = 0;
 let inferenceTimestamp = 0;
 let inferenceCount = 0;
 
-faceMeshWorker.onmessage = (event) => {
-    const { input } = event.data;
-    onnxWorker.postMessage({input});
-}
+// landmarkerWorker.onmessage = (event) => {
+//     const { landmarks } = event.data;
+//     const faceImage = cropAndResize(previewCanvas, landmarks)
+//     const ctx = faceImage.getContext("2d");
+//     const imageData = ctx.getImageData(0, 0, faceImage.width, faceImage.height);
+//     const input = new Float32Array(36 * 36 * 3);
+//     for (let i = 0; i < imageData.data.length; i += 4) {
+//         const index = i / 4;
+//         input[index * 3] = imageData.data[i] / 255;
+//         input[index * 3 + 1] = imageData.data[i + 1] / 255;
+//         input[index * 3 + 2] = imageData.data[i + 2] / 255;
+//     }
+//     onnxWorker.postMessage({input});
+// }
 
 onnxWorker.onmessage = (event) => {
     const { output, delay, timestamp } = event.data;
@@ -127,7 +159,24 @@ async function processFrame(now, metadata) {
     if (metadata.mediaTime !== lastTime) {
         lastTime = metadata.mediaTime;
         previewCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
-        faceMeshWorker.postMessage({image: previewCtx.getImageData(0, 0, previewCanvas.width, previewCanvas.height)});
+        // landmarkerWorker.postMessage({image: await createImageBitmap(video)});
+
+        const results = faceLandmarker.detect({image: video});
+        if (results.faceLandmarks && results.faceLandmarks.length > 0) {
+            const landmarks = results.faceLandmarks[0];
+            const faceImage = cropAndResize(previewCanvas, landmarks)
+            const ctx = faceImage.getContext("2d");
+            const imageData = ctx.getImageData(0, 0, faceImage.width, faceImage.height);
+            const input = new Float32Array(36 * 36 * 3);
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                const index = i / 4;
+                input[index * 3] = imageData.data[i] / 255;
+                input[index * 3 + 1] = imageData.data[i + 1] / 255;
+                input[index * 3 + 2] = imageData.data[i + 2] / 255;
+            }
+            onnxWorker.postMessage({input});
+        }
+
         frameCount++;
         if (frameCount === 30) {
             const fpsEndTime = Date.now();
@@ -138,4 +187,36 @@ async function processFrame(now, metadata) {
         }
     }
     video.requestVideoFrameCallback(processFrame);
+}
+
+function getLandmarksBounds(landmarks, width, height) {
+    let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
+    for (let i = 0; i < landmarks.length; i++) {
+        const { x, y } = landmarks[i];
+        if (x < xMin) xMin = x;
+        if (x > xMax) xMax = x;
+        if (y < yMin) yMin = y;
+        if (y > yMax) yMax = y;
+    }
+    return {
+        xMin: Math.max(xMin, 0) * width,
+        xMax: Math.min(xMax, 1) * width,
+        yMin: Math.max(yMin, 0) * height,
+        yMax: Math.min(yMax, 1) * height,
+    }
+}
+
+function cropAndResize(canvas, landmarks) {
+    const { xMin, xMax, yMin, yMax } = getLandmarksBounds(landmarks, canvas.width, canvas.height);
+    const width = xMax - xMin;
+    const height = yMax - yMin;
+    faceCanvas.width = width;
+    faceCanvas.height = height;
+    faceCtx.drawImage(canvas, xMin, yMin, width, height, 0, 0, width, height);
+    const resizedCanvas = document.createElement("canvas");
+    resizedCanvas.width = 36;
+    resizedCanvas.height = 36;
+    const resizedCtx = resizedCanvas.getContext("2d");
+    resizedCtx.drawImage(faceCanvas, 0, 0, width, height, 0, 0, 36, 36);
+    return resizedCanvas;
 }
