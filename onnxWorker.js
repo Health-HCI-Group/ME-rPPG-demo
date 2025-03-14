@@ -53,6 +53,7 @@ self.onmessage = async (event) => {
     for (let i = 1; i < onnxSession.outputNames.length; i++) {
         state[onnxSession.inputNames[i]] = outputs[onnxSession.outputNames[i]];
     }
-    const delay = Date.now() - startTime;
-    self.postMessage({output, delay});
+    const nowTime = Date.now();
+    const delay = nowTime - startTime;
+    self.postMessage({output, delay, timestamp: nowTime});
 };

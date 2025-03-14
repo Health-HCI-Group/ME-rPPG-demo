@@ -13,6 +13,8 @@ const plotCanvas = document.getElementById("plotCanvas");
 const plotCtx = plotCanvas.getContext("bitmaprenderer");
 const inferenceDelayValue = document.getElementById("inferenceDelayValue");
 const heartRateValue = document.getElementById("heartRateValue");
+const cameraFpsValue = document.getElementById("cameraFpsValue");
+const inferenceFpsValue = document.getElementById("inferenceFpsValue");
 
 video.addEventListener('loadedmetadata', () => {
     previewCanvas.width = video.videoWidth;
@@ -78,8 +80,17 @@ const welchWorker = new Worker("welchWorker.js");
 let welchArray = [];
 let welchCount = 0;
 
+let inferenceTimestamp = 0;
+let inferenceCount = 0;
+
 onnxWorker.onmessage = (event) => {
-    const { output, delay } = event.data;
+    const { output, delay, timestamp } = event.data;
+    inferenceCount++;
+    if (inferenceCount === 30) {
+        inferenceFpsValue.textContent = `${(30 / ((timestamp - inferenceTimestamp) / 1000)).toFixed(2)}`;
+        inferenceTimestamp = timestamp;
+        inferenceCount = 0;
+    }
     inferenceDelayValue.textContent = `${delay}`;
     if (welchArray.length >= 150) {
         welchArray.shift();
@@ -129,7 +140,6 @@ faceMesh.onResults(async (results) => {
             input[index * 3 + 1] = imageData.data[i + 1] / 255;
             input[index * 3 + 2] = imageData.data[i + 2] / 255;
         }
-        console.log(`New Input`);
         onnxWorker.postMessage({input});
     }
 });
@@ -168,12 +178,23 @@ function cropAndResize(canvas, landmarks) {
 
 let lastTime = 0;
 
+let frameCount = 0;
+let fpsBeginTime = 0;
+
 async function processFrame(now, metadata) {
     if (!isCameraOn) return;
     if (metadata.mediaTime !== lastTime) {
         lastTime = metadata.mediaTime;
         previewCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
         await faceMesh.send({image: video});
+        frameCount++;
+        if (frameCount === 30) {
+            const fpsEndTime = Date.now();
+            const fpsInterval = fpsEndTime - fpsBeginTime;
+            cameraFpsValue.textContent = `${(30 / (fpsInterval / 1000)).toFixed(2)}`;
+            fpsBeginTime = fpsEndTime;
+            frameCount = 0;
+        }
     }
     video.requestVideoFrameCallback(processFrame);
 }

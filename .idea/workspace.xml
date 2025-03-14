@@ -40,7 +40,7 @@
   &quot;keyToString&quot;: {
     &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feat-hr&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;D:/Research/EfficientWebInference/untitled&quot;,
     &quot;list.type.of.created.stylesheet&quot;: &quot;CSS&quot;,
@@ -86,6 +86,8 @@
       <workItem from="1741856073164" duration="24000" />
       <workItem from="1741856103148" duration="4623000" />
       <workItem from="1741866412986" duration="6647000" />
+      <workItem from="1741935897145" duration="774000" />
+      <workItem from="1741936778829" duration="3382000" />
     </task>
     <servers />
   </component>

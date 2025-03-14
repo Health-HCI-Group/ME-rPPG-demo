@@ -96,13 +96,15 @@ body {
     justify-content: center;
 }
 
-/*#debugInfo {*/
-/*    background: #fff3e0;*/
-/*    padding: 1.2rem;*/
-/*    border-radius: 8px;*/
-/*    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);*/
-/*    max-width: 240px;*/
-/*}*/
+#debugInfo {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.textValue {
+    min-width: 2rem;
+}
 
 #viewPanel {
     display: flex;
@@ -118,7 +120,6 @@ body {
 #cameraDisplay {
     display: flex;
     flex-direction: column;
-    align-items: center;
     max-width: 100%;
 }
 
@@ -137,6 +138,7 @@ body {
     font-size: 1.4rem;
     font-weight: 600;
     margin-bottom: 1rem;
+    width: 100%;
 }
 
 #videoInput {
