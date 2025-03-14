@@ -26,8 +26,6 @@ let isCameraOn = false;
 
 function startCamera() {
     try {
-        console.log(`Face Mesh OK state: ${!!FaceMesh}`);
-        console.log(`faceMesh instance state: ${!!faceMesh}`);
         navigator.mediaDevices.getUserMedia({
             video: {
                 width: {
@@ -73,6 +71,7 @@ function toggleCamera() {
 
 cameraButton.addEventListener("click", toggleCamera);
 
+const faceMeshWorker = new Worker("faceMeshWorker.js");
 const onnxWorker = new Worker("onnxWorker.js");
 const plotWorker = new Worker("plotWorker.js");
 const welchWorker = new Worker("welchWorker.js");
@@ -82,6 +81,11 @@ let welchCount = 0;
 
 let inferenceTimestamp = 0;
 let inferenceCount = 0;
+
+faceMeshWorker.onmessage = (event) => {
+    const { input } = event.data;
+    onnxWorker.postMessage({input});
+}
 
 onnxWorker.onmessage = (event) => {
     const { output, delay, timestamp } = event.data;
@@ -114,70 +118,7 @@ welchWorker.onmessage = (event) => {
     heartRateValue.textContent = hr.toFixed(1);
 }
 
-const faceMesh = new FaceMesh({
-    locateFile: (file) => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-    }
-});
-
-faceMesh.setOptions({
-    maxNumFaces: 1,
-    refineLandmarks: true,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5,
-});
-
-faceMesh.onResults(async (results) => {
-    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-        const landmarks = results.multiFaceLandmarks[0];
-        const faceImage = cropAndResize(previewCanvas, landmarks)
-        const ctx = faceImage.getContext("2d");
-        const imageData = ctx.getImageData(0, 0, faceImage.width, faceImage.height);
-        const input = new Float32Array(36 * 36 * 3);
-        for (let i = 0; i < imageData.data.length; i += 4) {
-            const index = i / 4;
-            input[index * 3] = imageData.data[i] / 255;
-            input[index * 3 + 1] = imageData.data[i + 1] / 255;
-            input[index * 3 + 2] = imageData.data[i + 2] / 255;
-        }
-        onnxWorker.postMessage({input});
-    }
-});
-
-function getLandmarksBounds(landmarks, width, height) {
-    let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
-    for (let i = 0; i < landmarks.length; i++) {
-        const { x, y } = landmarks[i];
-        if (x < xMin) xMin = x;
-        if (x > xMax) xMax = x;
-        if (y < yMin) yMin = y;
-        if (y > yMax) yMax = y;
-    }
-    return {
-        xMin: Math.max(xMin, 0) * width,
-        xMax: Math.min(xMax, 1) * width,
-        yMin: Math.max(yMin, 0) * height,
-        yMax: Math.min(yMax, 1) * height,
-    }
-}
-
-function cropAndResize(canvas, landmarks) {
-    const { xMin, xMax, yMin, yMax } = getLandmarksBounds(landmarks, canvas.width, canvas.height);
-    const width = xMax - xMin;
-    const height = yMax - yMin;
-    faceCanvas.width = width;
-    faceCanvas.height = height;
-    faceCtx.drawImage(canvas, xMin, yMin, width, height, 0, 0, width, height);
-    const resizedCanvas = document.createElement("canvas");
-    resizedCanvas.width = 36;
-    resizedCanvas.height = 36;
-    const resizedCtx = resizedCanvas.getContext("2d");
-    resizedCtx.drawImage(faceCanvas, 0, 0, width, height, 0, 0, 36, 36);
-    return resizedCanvas;
-}
-
 let lastTime = 0;
-
 let frameCount = 0;
 let fpsBeginTime = 0;
 
@@ -186,7 +127,7 @@ async function processFrame(now, metadata) {
     if (metadata.mediaTime !== lastTime) {
         lastTime = metadata.mediaTime;
         previewCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
-        await faceMesh.send({image: video});
+        faceMeshWorker.postMessage({image: previewCtx.getImageData(0, 0, previewCanvas.width, previewCanvas.height)});
         frameCount++;
         if (frameCount === 30) {
             const fpsEndTime = Date.now();
