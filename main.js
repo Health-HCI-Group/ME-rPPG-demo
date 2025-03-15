@@ -18,7 +18,6 @@ const inferenceFpsValue = document.getElementById("inferenceFpsValue");
 
 const video = document.getElementById("videoInput");
 video.addEventListener('loadedmetadata', () => {
-    const scale = 0.8;
     previewCanvas.width = video.videoWidth;
     previewCanvas.height = video.videoHeight;
     overlayCanvas.width = video.videoWidth;
