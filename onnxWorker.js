@@ -3,6 +3,8 @@ importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.min.
 let onnxSession;
 let state = {};
 
+let lastTimestamp = null;
+
 ort.env.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/";
 
 ort.InferenceSession.create("model.onnx", {
@@ -39,9 +41,10 @@ self.onmessage = async (event) => {
         return;
     }
     const startTime = Date.now();
-    const { input } = event.data;
+    const { input, timestamp } = event.data;
     const inputData = new ort.Tensor("float32", input, [1, 1, 36, 36, 3]);
-    const dt = new ort.Tensor("float32", [1 / 30], []);
+    const dt = new ort.Tensor("float32", [lastTimestamp ? (timestamp - lastTimestamp) : 1 / 30], []);
+    lastTimestamp = timestamp;
     const feeds = {};
     feeds[onnxSession.inputNames[0]] = inputData;
     for (const [key, value] of Object.entries(state)) {

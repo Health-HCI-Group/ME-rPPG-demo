@@ -24,6 +24,8 @@ video.addEventListener('loadedmetadata', () => {
 let stream = null;
 let isCameraOn = false;
 
+const timestampArray = [];
+
 function startCamera() {
     try {
         console.log(`Face Mesh OK state: ${!!FaceMesh}`);
@@ -128,6 +130,7 @@ faceMesh.setOptions({
 });
 
 faceMesh.onResults(async (results) => {
+    const timestamp = timestampArray.shift();
     if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
         const landmarks = results.multiFaceLandmarks[0];
         const faceImage = cropAndResize(previewCanvas, landmarks)
@@ -140,7 +143,7 @@ faceMesh.onResults(async (results) => {
             input[index * 3 + 1] = imageData.data[i + 1] / 255;
             input[index * 3 + 2] = imageData.data[i + 2] / 255;
         }
-        onnxWorker.postMessage({input});
+        onnxWorker.postMessage({input, timestamp});
     }
 });
 
@@ -183,8 +186,10 @@ let fpsBeginTime = 0;
 
 async function processFrame(now, metadata) {
     if (!isCameraOn) return;
-    if (metadata.mediaTime !== lastTime) {
-        lastTime = metadata.mediaTime;
+    const mediaTime = metadata.mediaTime;
+    if (mediaTime !== lastTime) {
+        timestampArray.push(mediaTime);
+        lastTime = mediaTime;
         previewCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
         await faceMesh.send({image: video});
         frameCount++;
