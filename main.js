@@ -3,9 +3,9 @@
 * The pipeline and MediaPipe processing (MediaPipe does not work in WebWorkers)
 * */
 
-const video = document.getElementById("videoInput");
 const cameraButton = document.getElementById("switchButton");
 const previewCanvas = document.getElementById("previewCanvas");
+const overlayCanvas = document.getElementById("overlayCanvas");
 const previewCtx = previewCanvas.getContext("2d");
 const faceCanvas = document.createElement("canvas");
 const faceCtx = faceCanvas.getContext("2d");
@@ -13,41 +13,60 @@ const plotCanvas = document.getElementById("plotCanvas");
 const plotCtx = plotCanvas.getContext("bitmaprenderer");
 const inferenceDelayValue = document.getElementById("inferenceDelayValue");
 const heartRateValue = document.getElementById("heartRateValue");
-const cameraFpsValue = document.getElementById("cameraFpsValue");
+heartRateValue.style.color = 'blue';
 const inferenceFpsValue = document.getElementById("inferenceFpsValue");
 
+const video = document.getElementById("videoInput");
 video.addEventListener('loadedmetadata', () => {
+    const scale = 0.8;
     previewCanvas.width = video.videoWidth;
     previewCanvas.height = video.videoHeight;
+    overlayCanvas.width = video.videoWidth;
+    overlayCanvas.height = video.videoHeight;
 });
+
+import { FaceDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
+
+
+let faceDetector = null;
+
+async function initializeFaceDetector() {
+  const vision = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
+  );
+  faceDetector = await FaceDetector.createFromOptions(vision, {
+    baseOptions: {
+      modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite`,
+      delegate: "GPU"
+    },
+    runningMode: "VIDEO",
+    minDetectionConfidence: 0.5
+  });
+}
+
 
 let stream = null;
 let isCameraOn = false;
+let rafHandle = null;
 
-const timestampArray = [];
+let timestampArray = [];
 
-function startCamera() {
+async function startCamera() {
     try {
-        console.log(`Face Mesh OK state: ${!!FaceMesh}`);
-        console.log(`faceMesh instance state: ${!!faceMesh}`);
+        if (!faceDetector){
+            await initializeFaceDetector();
+        }
+        console.log(`Face Detector OK state: ${!!faceDetector}`);
+        
         navigator.mediaDevices.getUserMedia({
-            video: {
-                width: {
-                    ideal: 640,
-                },
-                height: {
-                    ideal: 480,
-                },
-                frameRate: 30,
-            },
-            audio: false,
+            video: {width: {ideal:640}, height: {ideal:480}, frameRate: 30},
+            audio: false
         }).then((mediaStream) => {
             stream = mediaStream;
             video.srcObject = stream;
-            video.play();
             isCameraOn = true;
-            cameraButton.textContent = "Stop Camera";
-            video.requestVideoFrameCallback(processFrame);
+            cameraButton.textContent = "Stop";
+            rafHandle = video.requestVideoFrameCallback(processFrame);
         });
     } catch (error) {
         console.error("Error accessing camera:", error);
@@ -55,14 +74,24 @@ function startCamera() {
     }
 }
 
+
 function stopCamera() {
     plotWorker.postMessage({output: null});
+
+    video.cancelVideoFrameCallback(rafHandle);
     if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-        video.srcObject = null;
-        isCameraOn = false;
-        cameraButton.textContent = "Start Camera";
+        stream.getTracks().forEach((track) => {
+            track.stop();
+            track.enabled = false;
+        });
     }
+    video.srcObject = null;
+    isCameraOn = false;
+    cameraButton.textContent = "Start";
+    previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+    const overlayCtx = overlayCanvas.getContext("2d");
+    overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+    timestampArray = [];
 }
 
 function toggleCamera() {
@@ -89,17 +118,19 @@ onnxWorker.onmessage = (event) => {
     const { output, delay, timestamp } = event.data;
     inferenceCount++;
     if (inferenceCount === 30) {
-        inferenceFpsValue.textContent = `${(30 / ((timestamp - inferenceTimestamp) / 1000)).toFixed(2)}`;
+        inferenceFpsValue.textContent = `${(30 / ((timestamp - inferenceTimestamp) / 1000)).toFixed(1)}`;
         inferenceTimestamp = timestamp;
         inferenceCount = 0;
     }
-    inferenceDelayValue.textContent = `${delay}`;
+    inferenceDelayValue.textContent = delay;
     if (welchArray.length >= 150) {
         welchArray.shift();
     }
     welchArray.push(output);
     welchCount++;
-    plotWorker.postMessage({output});
+    plotWorker.postMessage({
+        output,
+    });
     if (welchCount >= 150) {
         welchWorker.postMessage({input: new Float32Array(welchArray)});
         welchCount = 120;
@@ -112,93 +143,97 @@ plotWorker.onmessage = (event) => {
 }
 
 welchWorker.onmessage = (event) => {
-    const { hr } = event.data;
+    let { hr } = event.data;
+    if (timestampArray.length > 150){
+        const startTime = timestampArray[timestampArray.length - 151];
+        const endTime = timestampArray[timestampArray.length - 1];
+        const duration = endTime - startTime;
+        const averageFps = 150 / duration;
+        console.log(averageFps);
+        hr = hr/30*averageFps;
+        heartRateValue.style.color = 'red';
+    }else{
+        heartRateValue.style.color = 'blue';
+    }
     heartRateValue.textContent = hr.toFixed(1);
 }
 
-const faceMesh = new FaceMesh({
-    locateFile: (file) => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-    }
-});
+function cropAndResizeUsingBoundingBox(canvas, boundingBox) {
 
-faceMesh.setOptions({
-    maxNumFaces: 1,
-    refineLandmarks: true,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5,
-});
+    const x = Math.max(0, boundingBox.originX);
+    const y = Math.max(0, boundingBox.originY);
+    const width = Math.min(boundingBox.width, canvas.width - x);
+    const height = Math.min(boundingBox.height, canvas.height - y);
 
-faceMesh.onResults(async (results) => {
-    const timestamp = timestampArray.shift();
-    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-        const landmarks = results.multiFaceLandmarks[0];
-        const faceImage = cropAndResize(previewCanvas, landmarks)
+    faceCanvas.width = width;
+    faceCanvas.height = height;
+    faceCtx.drawImage(canvas, x, y, width, height, 0, 0, width, height);
+
+    const resizedCanvas = document.createElement("canvas");
+    resizedCanvas.width = 36;
+    resizedCanvas.height = 36;
+    const resizedCtx = resizedCanvas.getContext("2d");
+    resizedCtx.imageSmoothingEnabled = true;
+    resizedCtx.imageSmoothingQuality = "high";
+    resizedCtx.drawImage(faceCanvas, 0, 0, width, height, 0, 0, 36, 36);
+    return resizedCanvas;
+}
+
+
+let lastTime = 0;
+
+async function processFrame(now, metadata) {
+    if (!isCameraOn) return;
+    if (lastTime == metadata.mediaTime) return;
+    lastTime = metadata.mediaTime;
+    timestampArray.push(lastTime);
+    previewCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
+
+    if (!faceDetector) return;
+    
+    const startTimeMs = performance.now();
+    const result = faceDetector.detectForVideo(video, startTimeMs);
+    const detections = result.detections;
+
+    if (detections && detections.length > 0) {
+        const detection = detections[0];
+        detection.boundingBox.height = detection.boundingBox.height * 1.2;
+        detection.boundingBox.originY = detection.boundingBox.originY - detection.boundingBox.height * 0.2;
+        const faceImage = cropAndResizeUsingBoundingBox(previewCanvas, detection.boundingBox);
+        drawBoundingBox(detection.boundingBox);
         const ctx = faceImage.getContext("2d");
-        const imageData = ctx.getImageData(0, 0, faceImage.width, faceImage.height);
+        const imageData = ctx.getImageData(0, 0, 36, 36);
         const input = new Float32Array(36 * 36 * 3);
+        
         for (let i = 0; i < imageData.data.length; i += 4) {
             const index = i / 4;
             input[index * 3] = imageData.data[i] / 255;
             input[index * 3 + 1] = imageData.data[i + 1] / 255;
             input[index * 3 + 2] = imageData.data[i + 2] / 255;
         }
-        onnxWorker.postMessage({input, timestamp});
+        
+        onnxWorker.postMessage({ input, timestamp: lastTime });
     }
-});
 
-function getLandmarksBounds(landmarks, width, height) {
-    let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
-    for (let i = 0; i < landmarks.length; i++) {
-        const { x, y } = landmarks[i];
-        if (x < xMin) xMin = x;
-        if (x > xMax) xMax = x;
-        if (y < yMin) yMin = y;
-        if (y > yMax) yMax = y;
-    }
-    return {
-        xMin: Math.max(xMin, 0) * width,
-        xMax: Math.min(xMax, 1) * width,
-        yMin: Math.max(yMin, 0) * height,
-        yMax: Math.min(yMax, 1) * height,
-    }
-}
-
-function cropAndResize(canvas, landmarks) {
-    const { xMin, xMax, yMin, yMax } = getLandmarksBounds(landmarks, canvas.width, canvas.height);
-    const width = xMax - xMin;
-    const height = yMax - yMin;
-    faceCanvas.width = width;
-    faceCanvas.height = height;
-    faceCtx.drawImage(canvas, xMin, yMin, width, height, 0, 0, width, height);
-    const resizedCanvas = document.createElement("canvas");
-    resizedCanvas.width = 36;
-    resizedCanvas.height = 36;
-    const resizedCtx = resizedCanvas.getContext("2d");
-    resizedCtx.drawImage(faceCanvas, 0, 0, width, height, 0, 0, 36, 36);
-    return resizedCanvas;
-}
-
-let lastTime = 0;
-
-let frameCount = 0;
-let fpsBeginTime = 0;
-
-async function processFrame(now, metadata) {
-    if (!isCameraOn) return;
-    // if (metadata.mediaTime !== lastTime) {
-        lastTime = metadata.mediaTime;
-        timestampArray.push(lastTime);
-        previewCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
-        await faceMesh.send({image: video});
-        frameCount++;
-        if (frameCount === 30) {
-            const fpsEndTime = Date.now();
-            const fpsInterval = fpsEndTime - fpsBeginTime;
-            cameraFpsValue.textContent = `${(30 / (fpsInterval / 1000)).toFixed(2)}`;
-            fpsBeginTime = fpsEndTime;
-            frameCount = 0;
-        }
-    // }
     video.requestVideoFrameCallback(processFrame);
 }
+
+function drawBoundingBox(boundingBox) {
+
+    const ctx = overlayCanvas.getContext("2d");
+    ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+    ctx.strokeStyle = "#FF0000";
+    ctx.lineWidth = 2;           
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.rect(
+      boundingBox.originX,
+      boundingBox.originY,
+      boundingBox.width,
+      boundingBox.height
+    );
+    ctx.stroke();
+  }
+  
+  
