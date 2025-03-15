@@ -186,10 +186,9 @@ let fpsBeginTime = 0;
 
 async function processFrame(now, metadata) {
     if (!isCameraOn) return;
-    const mediaTime = metadata.mediaTime;
-    if (mediaTime !== lastTime) {
-        timestampArray.push(mediaTime);
-        lastTime = mediaTime;
+    // if (metadata.mediaTime !== lastTime) {
+        lastTime = metadata.mediaTime;
+        timestampArray.push(lastTime);
         previewCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
         await faceMesh.send({image: video});
         frameCount++;
@@ -200,6 +199,6 @@ async function processFrame(now, metadata) {
             fpsBeginTime = fpsEndTime;
             frameCount = 0;
         }
-    }
+    // }
     video.requestVideoFrameCallback(processFrame);
 }

@@ -24,7 +24,6 @@ self.onmessage = async (event) => {
         console.log("Welch session not ready");
         return;
     }
-    const startTime = Date.now();
     const { input } = event.data;
     const inputData = new ort.Tensor("float32", input, [1, 1, input.length]);
     const outputs = await welchSession.run({ input: inputData });
