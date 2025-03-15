@@ -1,23 +1,28 @@
-importScripts("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.cjs");
+// importScripts("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs");
+
+import { FilesetResolver, FaceLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
 
 let vision;
 let faceLandmarker;
 
 FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
-).then((v) => {vision = v;});
-
-FaceLandmarker.createFromOptions(
-    vision,
-    {
-        baseOptions: {
-            modelAssetPath: "./",
-            delegate: "CPU",
+).then((v) => {
+    vision = v;
+    FaceLandmarker.createFromOptions(
+        vision,
+        {
+            baseOptions: {
+                modelAssetPath: "./face_landmarker.task",
+                delegate: "CPU",
+            },
+            runningMode: "IMAGE",
+            numFaces: 1,
         },
-    },
-).then((landmarker) => {
-    faceLandmarker = landmarker;
-    console.log("Face Landmarker loaded");
+    ).then((landmarker) => {
+        faceLandmarker = landmarker;
+        console.log("Face Landmarker loaded");
+    });
 });
 
 self.onmessage = (event) => {

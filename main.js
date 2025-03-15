@@ -16,6 +16,8 @@ const heartRateValue = document.getElementById("heartRateValue");
 const cameraFpsValue = document.getElementById("cameraFpsValue");
 const inferenceFpsValue = document.getElementById("inferenceFpsValue");
 
+import mpTasksVision from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3";
+
 video.addEventListener('loadedmetadata', () => {
     previewCanvas.width = video.videoWidth;
     previewCanvas.height = video.videoHeight;
@@ -71,29 +73,7 @@ function toggleCamera() {
 
 cameraButton.addEventListener("click", toggleCamera);
 
-// const landmarkerWorker = new Worker("faceMeshWorker.js");
-
-let vision;
-let faceLandmarker;
-
-mpTasksVision.FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
-).then((v) => {vision = v;});
-
-mpTasksVision.FaceLandmarker.createFromOptions(
-    vision,
-    {
-        baseOptions: {
-            modelAssetPath: "./",
-            delegate: "CPU",
-        },
-    },
-).then((landmarker) => {
-    faceLandmarker = landmarker;
-    console.log("Face Landmarker loaded");
-});
-
-
+// const landmarkerWorker = new Worker("landmarkerWorker.js", {type: "module"});
 const onnxWorker = new Worker("onnxWorker.js");
 const plotWorker = new Worker("plotWorker.js");
 const welchWorker = new Worker("welchWorker.js");
@@ -105,7 +85,7 @@ let inferenceTimestamp = 0;
 let inferenceCount = 0;
 
 // landmarkerWorker.onmessage = (event) => {
-//     const { landmarks } = event.data;
+//     const { landmarks, delay } = event.data;
 //     const faceImage = cropAndResize(previewCanvas, landmarks)
 //     const ctx = faceImage.getContext("2d");
 //     const imageData = ctx.getImageData(0, 0, faceImage.width, faceImage.height);
@@ -118,6 +98,29 @@ let inferenceCount = 0;
 //     }
 //     onnxWorker.postMessage({input});
 // }
+
+let vision;
+let faceLandmarker;
+
+mpTasksVision.FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
+).then((v) => {
+    vision = v;
+    mpTasksVision.FaceLandmarker.createFromOptions(
+        vision,
+        {
+            baseOptions: {
+                modelAssetPath: "./face_landmarker.task",
+                delegate: "CPU",
+            },
+            runningMode: "IMAGE",
+            numFaces: 1,
+        },
+    ).then((landmarker) => {
+        faceLandmarker = landmarker;
+        console.log("Face Landmarker loaded");
+    });
+});
 
 onnxWorker.onmessage = (event) => {
     const { output, delay, timestamp } = event.data;
@@ -160,8 +163,7 @@ async function processFrame(now, metadata) {
         lastTime = metadata.mediaTime;
         previewCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
         // landmarkerWorker.postMessage({image: await createImageBitmap(video)});
-
-        const results = faceLandmarker.detect({image: video});
+        const results = faceLandmarker.detect(video);
         if (results.faceLandmarks && results.faceLandmarks.length > 0) {
             const landmarks = results.faceLandmarks[0];
             const faceImage = cropAndResize(previewCanvas, landmarks)
