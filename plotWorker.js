@@ -3,7 +3,7 @@ const bufferSize = 512;
 
 function drawPlot() {
     // preparation
-    const canvas = new OffscreenCanvas(640, 480);
+    const canvas = new OffscreenCanvas(640, 240);
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = "#000000";
@@ -23,7 +23,7 @@ function drawPlot() {
     ctx.stroke();
 
     // Plot
-    ctx.strokeStyle = "#33ccff";
+    ctx.strokeStyle = "#FF3366";
     ctx.beginPath();
     const xStep = axisWidth / (bufferSize - 1);
     const yScale = axisHeight / 4;
