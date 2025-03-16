@@ -105,7 +105,7 @@ body {
 #viewPanel {
     display: flex;
     flex-direction: column;
-    height: 100%; /* 确保父容器有明确高度 */
+    height: 100%; 
 }
 
 #cameraDisplay {
@@ -116,7 +116,8 @@ body {
 }
 
 #videoInput {
-    display: none;
+    position: absolute;
+    top: -9999px;
 }
 
 #cameraPreview {
