@@ -13,7 +13,7 @@ const plotCanvas = document.getElementById("plotCanvas");
 const plotCtx = plotCanvas.getContext("bitmaprenderer");
 const inferenceDelayValue = document.getElementById("inferenceDelayValue");
 const heartRateValue = document.getElementById("heartRateValue");
-heartRateValue.style.color = 'blue';
+heartRateValue.style.color = "blue";
 const inferenceFpsValue = document.getElementById("inferenceFpsValue");
 
 let video = null;
@@ -23,23 +23,23 @@ import { FaceDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@med
 
 class KalmanFilter1D {
     constructor(processNoise, measurementNoise, initialState, initialEstimateError) {
-      this.processNoise = processNoise;
-      this.measurementNoise = measurementNoise;
-      this.estimate = initialState;
-      this.estimateError = initialEstimateError;
+        this.processNoise = processNoise;
+        this.measurementNoise = measurementNoise;
+        this.estimate = initialState;
+        this.estimateError = initialEstimateError;
     }
-  
+
     update(measurement) {
-      const prediction = this.estimate;
-      const predictionError = this.estimateError + this.processNoise;
-      const kalmanGain = predictionError / (predictionError + this.measurementNoise);
-      this.estimate = prediction + kalmanGain * (measurement - prediction);
-      this.estimateError = (1 - kalmanGain) * predictionError;
-  
-      return this.estimate;
+        const prediction = this.estimate;
+        const predictionError = this.estimateError + this.processNoise;
+        const kalmanGain = predictionError / (predictionError + this.measurementNoise);
+        this.estimate = prediction + kalmanGain * (measurement - prediction);
+        this.estimateError = (1 - kalmanGain) * predictionError;
+
+        return this.estimate;
     }
-  }
-  
+}
+
 let kfOriginX = null;
 let kfOriginY = null;
 let kfWidth = null;
@@ -51,19 +51,18 @@ let kfHr = null;
 let faceDetector = null;
 
 async function initializeFaceDetector() {
-  const vision = await FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.4/wasm"
-  );
-  faceDetector = await FaceDetector.createFromOptions(vision, {
-    baseOptions: {
-      modelAssetPath: `blaze_face_short_range.tflite`,
-      delegate: "CPU"
-    },
-    runningMode: "VIDEO",
-    minDetectionConfidence: 0.5
-  });
+    const vision = await FilesetResolver.forVisionTasks(
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.4/wasm"
+    );
+    faceDetector = await FaceDetector.createFromOptions(vision, {
+        baseOptions: {
+            modelAssetPath: `blaze_face_short_range.tflite`,
+            delegate: "CPU",
+        },
+        runningMode: "VIDEO",
+        minDetectionConfidence: 0.5,
+    });
 }
-
 
 let stream = null;
 let isCameraOn = false;
@@ -77,15 +76,16 @@ async function initFaceDetector() {
     }
     console.log(`Face Detector OK state: ${!!faceDetector}`);
 }
-initFaceDetector();
+
+initFaceDetector().then();
 
 function startCamera() {
     try {
         dropCount = 30;
-        
+
         navigator.mediaDevices.getUserMedia({
             video: {width: {ideal:640}, height: {ideal:480}, frameRate: 30},
-            audio: false
+            audio: false,
         }).then((mediaStream) => {
             stream = mediaStream;
             video.srcObject = stream;
@@ -123,9 +123,9 @@ function toggleCamera() {
     if (isCameraOn) {
         stopCamera();
     } else {
-        if (!video){
+        if (!video) {
             video = document.getElementById("videoInput");
-            video.addEventListener('loadedmetadata', () => {
+            video.addEventListener("loadedmetadata", () => {
                 previewCanvas.width = video.videoWidth;
                 previewCanvas.height = video.videoHeight;
                 overlayCanvas.width = video.videoWidth;
@@ -152,11 +152,11 @@ let dropCount = 30;
 onnxWorker.onmessage = (event) => {
     const { output, delay, timestamp } = event.data;
     if (dropCount) return dropCount--;
-    if (!kfOutput){
+    if (!kfOutput) {
         const processNoise = 1;
         const measurementNoise = 0.5;
         kfOutput = new KalmanFilter1D(processNoise, measurementNoise, output, 1);
-    }else{
+    } else {
         kfOutput.update(output);
     }
     inferenceCount++;
@@ -194,24 +194,24 @@ welchWorker.onmessage = (event) => {
         const endTime = timestampArray[timestampArray.length - 1];
         const duration = endTime - startTime;
         const averageFps = 300 / duration;
-        hr = hr/30*averageFps;
-    }else{
-        heartRateValue.style.color = 'blue';
+        hr = hr / 30 * averageFps;
+    } else {
+        heartRateValue.style.color = "blue";
     }
     if (!kfHr){
         const processNoise = 1.;
         const measurementNoise = 2.;
         kfHr = new KalmanFilter1D(processNoise, measurementNoise, hr, 1);
-    }else{
+    } else {
         kfHr.update(hr);
     }
-    MeanHRErr = 0.8*MeanHRErr + 0.2*Math.abs(kfHr.estimate-hr)/hr;
+    MeanHRErr = 0.8 * MeanHRErr + 0.2 * Math.abs(kfHr.estimate-hr) / hr;
     //console.log(MeanHRErr);
-    if ((MeanHRErr<0.02)&&(heartRateValue.style.color=='blue')){
-        heartRateValue.style.color = 'red';
+    if ((MeanHRErr < 0.02) && (heartRateValue.style.color === "blue")){
+        heartRateValue.style.color = "red";
     }
-    if ((MeanHRErr>0.025)&&(heartRateValue.style.color=='red')){
-        heartRateValue.style.color = 'blue';
+    if ((MeanHRErr > 0.025) && (heartRateValue.style.color === "red")){
+        heartRateValue.style.color = "blue";
     }
     heartRateValue.textContent = kfHr.estimate.toFixed(1);
 }
@@ -242,13 +242,16 @@ let lastTime = 0;
 
 async function processFrame(now, metadata) {
     if (!isCameraOn) return;
-    if (lastTime == metadata.mediaTime) return;
+    if (lastTime === metadata.mediaTime) return;
     lastTime = metadata.mediaTime;
     timestampArray.push(lastTime);
+    if (timestampArray.length > 301) {
+        timestampArray.shift();
+    }
     previewCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
 
     if (!faceDetector) return;
-    
+
     const startTimeMs = performance.now();
     const result = faceDetector.detectForVideo(video, startTimeMs);
     const detections = result.detections;
@@ -263,7 +266,7 @@ async function processFrame(now, metadata) {
             kfOriginY = new KalmanFilter1D(processNoise, measurementNoise, rawBoundingBox.originY, 1);
             kfWidth = new KalmanFilter1D(processNoise, measurementNoise, rawBoundingBox.width, 1);
             kfHeight = new KalmanFilter1D(processNoise, measurementNoise, rawBoundingBox.height, 1);
-        }else{
+        } else {
             kfOriginX.update(rawBoundingBox.originX);
             kfOriginY.update(rawBoundingBox.originY);
             kfWidth.update(rawBoundingBox.width);
@@ -283,14 +286,14 @@ async function processFrame(now, metadata) {
         const ctx = faceImage.getContext("2d");
         const imageData = ctx.getImageData(0, 0, 36, 36);
         const input = new Float32Array(36 * 36 * 3);
-        
+
         for (let i = 0; i < imageData.data.length; i += 4) {
             const index = i / 4;
             input[index * 3] = imageData.data[i] / 255;
             input[index * 3 + 1] = imageData.data[i + 1] / 255;
             input[index * 3 + 2] = imageData.data[i + 2] / 255;
         }
-        
+
         onnxWorker.postMessage({ input, timestamp: lastTime });
     }
 
@@ -303,16 +306,14 @@ function drawBoundingBox(boundingBox) {
     ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
     ctx.strokeStyle = "#FF0000";
-    ctx.lineWidth = 2;           
+    ctx.lineWidth = 2;
     ctx.setLineDash([]);
     ctx.beginPath();
     ctx.rect(
-      boundingBox.originX,
-      boundingBox.originY,
-      boundingBox.width,
-      boundingBox.height
+        boundingBox.originX,
+        boundingBox.originY,
+        boundingBox.width,
+        boundingBox.height
     );
     ctx.stroke();
-  }
-  
-  
+}

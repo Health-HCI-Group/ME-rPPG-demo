@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>ME-rPPG Demo</title>
     <link rel="stylesheet" href="style.css">
     <script type="module" src="./main.js"></script>
 </head>
@@ -19,9 +19,9 @@
                 <div>
                     Known issues:
                     <ul>
-                        <li>iOS device is not supported by now.</li>
-                        <li>Only 30fps camera is supported by now.</li>
-                        <li>Low quality cameras may lead to biased results</li>
+                        <li>iOS devices are not supported by now.</li>
+                        <li>It is hard to reach 30 fps on mobile devices.</li>
+                        <li>Low quality cameras as well as mobile cameras may lead to biased results.</li>
                     </ul>
                 </div>
             </div>
@@ -37,16 +37,22 @@
                             <div class="status-bar">
                                 <div>
                                     <span class="metric-label">Heart Rate:</span>
-                                    <span class="value-box"><span id="heartRateValue">NaN</span></span>
+                                    <span class="value-box">
+                                        <span id="heartRateValue">NaN</span>
+                                    </span>
                                     <span class="unit">BPM</span>
                                 </div>
                                 <div>
                                     <span class="metric-label">Inference FPS:</span>
-                                    <span class="value-box"><span id="inferenceFpsValue">0.0</span></span>
+                                    <span class="value-box">
+                                        <span id="inferenceFpsValue">0.0</span>
+                                    </span>
                                 </div>
                                 <div>
                                     <span class="metric-label">Inference Delay:</span>
-                                    <span class="value-box"><span id="inferenceDelayValue">NaN</span></span>
+                                    <span class="value-box">
+                                        <span id="inferenceDelayValue">NaN</span>
+                                    </span>
                                     <span class="unit">ms</span>
                                 </div>
                             </div>
@@ -55,7 +61,7 @@
                     <div class="canvas-wrapper" style="position: relative;">
                         <canvas id="previewCanvas"
                                 style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
-                        <canvas id="overlayCanvas" 
+                        <canvas id="overlayCanvas"
                                 style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
                       </div>
                 </div>

@@ -4,7 +4,7 @@ const bufferSize = 512;
 function drawPlot() {
     // preparation
     const canvas = new OffscreenCanvas(640, 240);
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = "#000000";
     ctx.fillStyle = "#000000";
