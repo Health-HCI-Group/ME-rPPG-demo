@@ -3,6 +3,22 @@
 * The pipeline and MediaPipe processing (MediaPipe does not work in WebWorkers)
 * */
 
+const cameraSelect = document.getElementById("cameraSelectDropdown");
+
+async function getCameraList() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(device => device.kind === "videoinput");
+    cameraSelect.options.length = 0;
+    videoDevices.forEach((device) => {
+        cameraSelect.options.add(new Option(device.label, device.deviceId));
+    });
+}
+
+getCameraList().then(() => {
+    cameraReady = true;
+    cameraButton.disabled = !ready();
+});
+
 const cameraButton = document.getElementById("switchButton");
 const previewCanvas = document.getElementById("previewCanvas");
 const overlayCanvas = document.getElementById("overlayCanvas");
@@ -18,6 +34,12 @@ const inferenceFpsValue = document.getElementById("inferenceFpsValue");
 
 let video = null;
 
+let cameraReady = false;
+let modelReady = false;
+let stateReady = false;
+let welchReady = false;
+let hrReady = false;
+const ready = () => cameraReady && modelReady && stateReady && welchReady && hrReady;
 
 import { FaceDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.4";
 
@@ -84,7 +106,18 @@ function startCamera() {
         dropCount = 30;
 
         navigator.mediaDevices.getUserMedia({
-            video: {width: {ideal:640}, height: {ideal:480}, frameRate: 30},
+            video: {
+                deviceId: {
+                    exact: cameraSelect.value ?? "default",
+                },
+                width: {
+                    ideal:640,
+                },
+                height: {
+                    ideal:480,
+                },
+                frameRate: 30,
+            },
             audio: false,
         }).then((mediaStream) => {
             stream = mediaStream;
@@ -149,7 +182,22 @@ let welchCount = 300-90;
 let inferenceTimestamp = 0;
 let inferenceCount = 0;
 let dropCount = 30;
+
 onnxWorker.onmessage = (event) => {
+    const { type } = event.data;
+    if (type === "ready") {
+        const { which } = event.data;
+        switch (which) {
+            case "model":
+                modelReady = true;
+                break;
+            case "state":
+                stateReady = true;
+                break;
+        }
+        cameraButton.disabled = !ready();
+        return;
+    }
     const { output, delay, timestamp } = event.data;
     if (dropCount) return dropCount--;
     if (!kfOutput) {
@@ -188,6 +236,20 @@ plotWorker.onmessage = (event) => {
 let MeanHRErr = 0.04;
 
 welchWorker.onmessage = (event) => {
+    const { type } = event.data;
+    if (type === "ready") {
+        const { which } = event.data;
+        switch (which) {
+            case "welch":
+                welchReady = true;
+                break;
+            case "hr":
+                hrReady = true;
+                break;
+        }
+        cameraButton.disabled = !ready();
+        return;
+    }
     let { hr } = event.data;
     if (timestampArray.length > 300){
         const startTime = timestampArray[timestampArray.length - 301];

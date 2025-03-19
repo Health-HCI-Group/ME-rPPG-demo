@@ -12,6 +12,10 @@ ort.InferenceSession.create("model.onnx", {
 }).then((session) => {
     onnxSession = session;
     console.log("Model Session created");
+    self.postMessage({
+        type: "ready",
+        which: "model",
+    })
 });
 
 function shapeOf(array) {
@@ -33,6 +37,7 @@ fetch("./state.json")
             state[key] = new ort.Tensor("float32", array, shape);
         }
         console.log("Initial state loaded");
+        self.postMessage({type: "ready", which: "state"});
     })
 
 self.onmessage = async (event) => {
@@ -58,5 +63,5 @@ self.onmessage = async (event) => {
     }
     const nowTime = Date.now();
     const delay = nowTime - startTime;
-    self.postMessage({output, delay, timestamp: nowTime});
+    self.postMessage({output, delay, timestamp: nowTime, type: "data"});
 };

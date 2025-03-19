@@ -10,6 +10,7 @@ ort.InferenceSession.create("welch_psd.onnx", {
 }).then(async (session) => {
     welchSession = session;
     console.log("Welch Session created");
+    self.postMessage({type: "ready", which: "welch"});
 });
 
 ort.InferenceSession.create("get_hr.onnx", {
@@ -17,6 +18,7 @@ ort.InferenceSession.create("get_hr.onnx", {
 }).then((session) => {
     hrSession = session;
     console.log("HR Session created");
+    self.postMessage({type: "ready", which: "hr"});
 });
 
 self.onmessage = async (event) => {
@@ -30,5 +32,5 @@ self.onmessage = async (event) => {
     const freqs = outputs["freqs"];
     const psd = outputs["psd"];
     const hr = (await hrSession.run({freqs, psd}))["hr"]["cpuData"]["0"];
-    self.postMessage({hr});
+    self.postMessage({hr, type: "data"});
 };
