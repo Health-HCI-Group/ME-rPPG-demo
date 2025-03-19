@@ -184,16 +184,17 @@ body {
     width: 640px;  /* 与视频分辨率匹配 */
     height: 480px;
     margin: 0 auto; /* 居中显示 */
-  }
+}
 
-  #previewCanvas,
-  #overlayCanvas {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: contain; /* 保持原始比例 */
-  }
+#videoInput,
+#previewCanvas,
+#overlayCanvas {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain; /* 保持原始比例 */
+}
 
-  .status-bar {
+    .status-bar {
     display: flex;
     gap: 20px;
     align-items: baseline;
