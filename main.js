@@ -3,6 +3,17 @@
 * The pipeline and MediaPipe processing (MediaPipe does not work in WebWorkers)
 * */
 
+document.getElementById("authorization").addEventListener("click", () => {
+    navigator.mediaDevices.getUserMedia({
+        video: true,
+    }).then((stream) => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            location.reload();
+        }
+    });
+});
+
 const cameraSelect = document.getElementById("cameraSelectDropdown");
 
 async function getCameraList() {
