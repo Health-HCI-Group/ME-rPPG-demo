@@ -6,8 +6,8 @@
     <link rel="stylesheet" href="style.css">
     <script type="module" src="./main.js"></script>
 </head>
-<script>var vConsole = new VConsole();</script>
 <body>
+    <video id="videoInput" muted playsinline></video>
     <div id="container">
         <div id="sidebar">
             <div id="title">ME-rPPG Demo</div>
@@ -71,7 +71,7 @@
                     <div class="canvas-wrapper" style="position: relative;">
                         <canvas id="previewCanvas"
                                 style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
-                        <canvas id="overlayCanvas" 
+                        <canvas id="overlayCanvas"
                                 style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
                       </div>
                     </div>
