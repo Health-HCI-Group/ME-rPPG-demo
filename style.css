@@ -7,6 +7,7 @@
     --text-secondary: #757575;
     --success: #4CAF50;
     --error: #F44336;
+    --sidebar-width: 380px;
 }
 
 body {
@@ -16,21 +17,27 @@ body {
     background-color: var(--background);
     color: var(--text-primary);
     line-height: 1.6;
+    min-height: 80vh;
 }
 
 #container {
     display: flex;
+    flex-wrap: wrap; /* 允许换行 */
     gap: 2rem;
     max-width: 1600px;
     margin: 0 auto;
 }
 
 #sidebar {
-    flex: 0 0 350px;
-    background: var(--card-bg);
+    flex: 1 1 var(--sidebar-width);
+    min-width: 300px; /* 最小宽度 */
+    max-width: 100%; /* 移动端限制最大宽度 */
     padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.canvas-wrapper {
+    position: relative;
+    width: 100%;
 }
 
 #title {
@@ -189,12 +196,16 @@ body {
   
   #previewCanvas,
   #overlayCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
       width: 100% !important;
       height: 100% !important;
       object-fit: contain; /* 保持原始比例 */
   }
   
   .status-bar {
+    flex-wrap: wrap;
     display: flex;
     gap: 20px;
     align-items: baseline;
@@ -220,4 +231,46 @@ body {
 
 .unit {
     margin-left: 0.2em;
+}
+
+@media (max-width: 1200px) {
+    #container {
+        flex-direction: column;
+    }
+    
+    #sidebar, #viewPanel {
+        flex: none;
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .status-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .canvas-wrapper {
+        padding-top: 100%; /* 移动端改为正方形比例 */
+    }
+}
+
+@media (max-width: 480px) {
+    #sidebar {
+        padding: 1rem;
+    }
+    
+    .controlButtons {
+        width: 100%;
+        padding: 12px;
+    }
+    
+    #plotCanvas {
+        height: 150px;
+    }
 }

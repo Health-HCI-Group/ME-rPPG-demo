@@ -2,12 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>ME-rPPG Demo</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/vConsole/3.15.0/vconsole.min.js"></script>
     <link rel="stylesheet" href="style.css">
     <script type="module" src="./main.js"></script>
 </head>
+<script>var vConsole = new VConsole();</script>
 <body>
-    <video id="videoInput" muted></video>
+    <video id="videoInput" playsinline webkit-playsinline muted></video>
     <div id="container">
         <div id="sidebar">
             <div id="title">ME-rPPG Demo</div>
@@ -52,12 +54,14 @@
                             </div>
                         </div>
                     </div>
+                    <div class="video-wrapper">
                     <div class="canvas-wrapper" style="position: relative;">
                         <canvas id="previewCanvas"
                                 style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
                         <canvas id="overlayCanvas" 
                                 style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
                       </div>
+                    </div>
                 </div>
             </div>
             <div id="cameraPreview">
