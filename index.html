@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="style.css">
     <script type="module" src="./main.js"></script>
 </head>
+<script>var vConsole = new VConsole();</script>
 <body>
     <div id="container">
         <div id="sidebar">
@@ -66,10 +67,13 @@
                             </div>
                         </div>
                     </div>
+                    <div class="video-wrapper">
                     <div class="canvas-wrapper" style="position: relative;">
-                        <video id="videoInput" muted style="position: absolute; top: 0; left: 0; pointer-events: none;"></video>
-                        <canvas id="previewCanvas" style="position: absolute; top: 0; left: 0; pointer-events: none; display: none"></canvas>
-                        <canvas id="overlayCanvas" style="position: absolute; top: 0; left: 0; pointer-events: none; display: none"></canvas>
+                        <canvas id="previewCanvas"
+                                style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
+                        <canvas id="overlayCanvas" 
+                                style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
+                      </div>
                     </div>
                 </div>
             </div>

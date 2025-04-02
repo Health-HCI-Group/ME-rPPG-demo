@@ -52,6 +52,14 @@ let welchReady = false;
 let hrReady = false;
 const ready = () => cameraReady && modelReady && stateReady && welchReady && hrReady;
 
+const isApplePlatform = () => {
+    const isApple = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
+    const supportsRVFC = 'requestVideoFrameCallback' in HTMLVideoElement.prototype;
+    return isApple || !supportsRVFC;
+  };
+
+//const isApplePlatform = () => true
+
 import { FaceDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.4";
 
 class KalmanFilter1D {
@@ -145,6 +153,16 @@ function startCamera() {
 
 
 function stopCamera() {
+    console.log('stop');
+    if (stream) {
+        stream.getTracks().forEach(track => {
+            track.stop();
+            track.enabled = false;
+        });
+        stream = null;
+    }
+    video.pause();
+
     plotWorker.postMessage({output: null});
 
     video.cancelVideoFrameCallback(rafHandle);
@@ -163,25 +181,102 @@ function stopCamera() {
     timestampArray = [];
 }
 
-function toggleCamera() {
+function startFrameProcessing() {
+    if (!isApplePlatform()) {
+      rafHandle = video.requestVideoFrameCallback(processFrame);
+    } else {
+      let lastCall = 0;
+      const fpsInterval = 1000 / 30; //以最高30fps的速率轮询
+      
+      const animate = (now) => {
+        if (!isCameraOn) return;
+        
+        const elapsed = now - lastCall;
+        if (elapsed > fpsInterval) {
+          lastCall = now - (elapsed % fpsInterval);
+          
+          const metadata = {
+            mediaTime: video.currentTime,
+            presentedFrames: 0,
+            width: video.videoWidth,
+            height: video.videoHeight
+          };
+          processFrame(performance.now(), metadata);
+        }
+        requestAnimationFrame(animate);
+      };
+      requestAnimationFrame(animate);
+    }
+  }
+
+async function toggleCamera() {
     if (isCameraOn) {
         stopCamera();
-    } else {
+        return;
+    }
+    
+    try {
+        // 同步执行链
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+                width: { ideal: 640 }, 
+                height: { ideal: 480 }, 
+                frameRate: { ideal: 30 }, 
+                facingMode: "user" 
+            },
+            audio: false
+        });
+        
+        // 确保视频元素已初始化
         if (!video) {
             video = document.getElementById("videoInput");
-            video.addEventListener("loadedmetadata", () => {
+            video.addEventListener('loadedmetadata', () => {
+                video.currentTime = 0.001;
                 previewCanvas.width = video.videoWidth;
                 previewCanvas.height = video.videoHeight;
                 overlayCanvas.width = video.videoWidth;
                 overlayCanvas.height = video.videoHeight;
             });
         }
-        video.play();
-        startCamera();
+        
+        // 同步设置媒体流
+        video.srcObject = stream;
+
+        // iOS 必须的播放触发
+        await video.play().then(() => {
+            console.log('视频播放成功，当前状态:', 
+                `paused: ${video.paused}, `,
+                `readyState: ${video.readyState}, `,
+                `error: ${video.error}`
+            );
+            startFrameProcessing();
+        }).catch(err => {
+            console.error('video.play()拒绝:', {
+                name: err.name,
+                message: err.message,
+                stack: err.stack
+            });
+            throw err;
+        });
+
+        // 启动后续处理
+        isCameraOn = true;
+        cameraButton.textContent = "Stop";
+        //rafHandle = video.requestVideoFrameCallback(processFrame);
+        
+    } catch (error) {
+        console.error('摄像头错误:', error.name, error.message);
+        alert(`摄像头启动失败: ${error.message}`);
+        stopCamera();
     }
 }
 
-cameraButton.addEventListener("click", toggleCamera);
+//cameraButton.addEventListener("click", toggleCamera);
+
+cameraButton.addEventListener("click", () => {
+        if (!faceDetector) initFaceDetector();
+        toggleCamera();
+     });
 
 const onnxWorker = new Worker("onnxWorker.js");
 const plotWorker = new Worker("plotWorker.js");
@@ -287,6 +382,7 @@ welchWorker.onmessage = (event) => {
         heartRateValue.style.color = "blue";
     }
     heartRateValue.textContent = kfHr.estimate.toFixed(1);
+    console.log(console.log(kfHr.estimate.toFixed(1)));
 }
 
 function cropAndResizeUsingBoundingBox(canvas, boundingBox) {
@@ -317,6 +413,30 @@ async function processFrame(now, metadata) {
     if (!isCameraOn) return;
     if (lastTime === metadata.mediaTime) return;
     lastTime = metadata.mediaTime;
+
+    if (!metadata) {
+        metadata = {
+          mediaTime: video.currentTime,
+          presentedFrames: 0,
+          width: video.videoWidth,
+          height: video.videoHeight
+        };
+      }
+
+    if (!isCameraOn) {
+        console.log('Camera not on');
+        return;
+    }
+    if (lastTime == metadata.mediaTime) {
+        //console.log('Timestamp err', lastTime, metadata.mediaTime);
+        return;}
+    //console.log('New frame', lastTime, metadata.mediaTime);
+    if (isApplePlatform()){
+        lastTime = now/1000;
+    }else{
+        lastTime = metadata.mediaTime;
+    }
+    //console.log(lastTime)
     timestampArray.push(lastTime);
     if (timestampArray.length > 301) {
         timestampArray.shift();
@@ -369,8 +489,9 @@ async function processFrame(now, metadata) {
 
         onnxWorker.postMessage({ input, timestamp: lastTime });
     }
-
-    video.requestVideoFrameCallback(processFrame);
+    if(!isApplePlatform()){
+        video.requestVideoFrameCallback(processFrame);
+    }
 }
 
 function drawBoundingBox(boundingBox) {
