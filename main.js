@@ -56,7 +56,7 @@ const isApplePlatform = () => {
     const isApple = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
     const supportsRVFC = 'requestVideoFrameCallback' in HTMLVideoElement.prototype;
     return isApple || !supportsRVFC;
-  };
+};
 
 //const isApplePlatform = () => true
 
@@ -123,17 +123,16 @@ initFaceDetector().then();
 function startCamera() {
     try {
         dropCount = 30;
-
         navigator.mediaDevices.getUserMedia({
             video: {
                 deviceId: {
                     exact: cameraSelect.value ?? "default",
                 },
                 width: {
-                    ideal:640,
+                    ideal: 640,
                 },
                 height: {
-                    ideal:480,
+                    ideal: 480,
                 },
                 frameRate: 30,
             },
@@ -153,7 +152,7 @@ function startCamera() {
 
 
 function stopCamera() {
-    console.log('stop');
+    console.log("stop");
     if (stream) {
         stream.getTracks().forEach(track => {
             track.stop();
@@ -162,9 +161,7 @@ function stopCamera() {
         stream = null;
     }
     video.pause();
-
     plotWorker.postMessage({output: null});
-
     video.cancelVideoFrameCallback(rafHandle);
     if (stream) {
         stream.getTracks().forEach((track) => {
@@ -183,50 +180,49 @@ function stopCamera() {
 
 function startFrameProcessing() {
     if (!isApplePlatform()) {
-      rafHandle = video.requestVideoFrameCallback(processFrame);
+        rafHandle = video.requestVideoFrameCallback(processFrame);
     } else {
-      let lastCall = 0;
-      const fpsInterval = 1000 / 30; //以最高30fps的速率轮询
-      
-      const animate = (now) => {
-        if (!isCameraOn) return;
-        
-        const elapsed = now - lastCall;
-        if (elapsed > fpsInterval) {
-          lastCall = now - (elapsed % fpsInterval);
-          
-          const metadata = {
-            mediaTime: video.currentTime,
-            presentedFrames: 0,
-            width: video.videoWidth,
-            height: video.videoHeight
-          };
-          processFrame(performance.now(), metadata);
-        }
+        let lastCall = 0;
+        const fpsInterval = 1000 / 30; //以最高30fps的速率轮询
+
+        const animate = (now) => {
+            if (!isCameraOn) return;
+
+            const elapsed = now - lastCall;
+            if (elapsed > fpsInterval) {
+                lastCall = now - (elapsed % fpsInterval);
+
+                const metadata = {
+                    mediaTime: video.currentTime,
+                    presentedFrames: 0,
+                    width: video.videoWidth,
+                    height: video.videoHeight
+                };
+                processFrame(performance.now(), metadata).then();
+            }
+            requestAnimationFrame(animate);
+        };
         requestAnimationFrame(animate);
-      };
-      requestAnimationFrame(animate);
     }
-  }
+}
 
 async function toggleCamera() {
     if (isCameraOn) {
         stopCamera();
         return;
     }
-    
     try {
         // 同步执行链
         const stream = await navigator.mediaDevices.getUserMedia({
-            video: { 
-                width: { ideal: 640 }, 
-                height: { ideal: 480 }, 
-                frameRate: { ideal: 30 }, 
-                facingMode: "user" 
+            video: {
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+                frameRate: { ideal: 30 },
+                facingMode: "user"
             },
-            audio: false
+            audio: false,
         });
-        
+
         // 确保视频元素已初始化
         if (!video) {
             video = document.getElementById("videoInput");
@@ -238,13 +234,13 @@ async function toggleCamera() {
                 overlayCanvas.height = video.videoHeight;
             });
         }
-        
+
         // 同步设置媒体流
         video.srcObject = stream;
 
         // iOS 必须的播放触发
         await video.play().then(() => {
-            console.log('视频播放成功，当前状态:', 
+            console.log('视频播放成功，当前状态:',
                 `paused: ${video.paused}, `,
                 `readyState: ${video.readyState}, `,
                 `error: ${video.error}`
@@ -263,7 +259,7 @@ async function toggleCamera() {
         isCameraOn = true;
         cameraButton.textContent = "Stop";
         //rafHandle = video.requestVideoFrameCallback(processFrame);
-        
+
     } catch (error) {
         console.error('摄像头错误:', error.name, error.message);
         alert(`摄像头启动失败: ${error.message}`);
@@ -274,8 +270,10 @@ async function toggleCamera() {
 //cameraButton.addEventListener("click", toggleCamera);
 
 cameraButton.addEventListener("click", () => {
-        if (!faceDetector) initFaceDetector();
-        toggleCamera();
+        if (!faceDetector) {
+            initFaceDetector().then();
+        }
+        toggleCamera().then();
      });
 
 const onnxWorker = new Worker("onnxWorker.js");
@@ -382,7 +380,7 @@ welchWorker.onmessage = (event) => {
         heartRateValue.style.color = "blue";
     }
     heartRateValue.textContent = kfHr.estimate.toFixed(1);
-    console.log(console.log(kfHr.estimate.toFixed(1)));
+    console.log(kfHr.estimate.toFixed(1));
 }
 
 function cropAndResizeUsingBoundingBox(canvas, boundingBox) {
@@ -406,7 +404,6 @@ function cropAndResizeUsingBoundingBox(canvas, boundingBox) {
     return resizedCanvas;
 }
 
-
 let lastTime = 0;
 
 async function processFrame(now, metadata) {
@@ -421,19 +418,16 @@ async function processFrame(now, metadata) {
           width: video.videoWidth,
           height: video.videoHeight
         };
-      }
+    }
 
     if (!isCameraOn) {
         console.log('Camera not on');
         return;
     }
-    if (lastTime == metadata.mediaTime) {
-        //console.log('Timestamp err', lastTime, metadata.mediaTime);
-        return;}
     //console.log('New frame', lastTime, metadata.mediaTime);
-    if (isApplePlatform()){
-        lastTime = now/1000;
-    }else{
+    if (isApplePlatform()) {
+        lastTime = now / 1000;
+    } else {
         lastTime = metadata.mediaTime;
     }
     //console.log(lastTime)
@@ -452,7 +446,7 @@ async function processFrame(now, metadata) {
     if (detections && detections.length > 0) {
         const detection = detections[0];
         const rawBoundingBox = detection.boundingBox;
-        if (!kfOriginX){
+        if (!kfOriginX) {
             const processNoise = 1e-2;
             const measurementNoise = 5e-1;
             kfOriginX = new KalmanFilter1D(processNoise, measurementNoise, rawBoundingBox.originX, 1);
@@ -489,7 +483,7 @@ async function processFrame(now, metadata) {
 
         onnxWorker.postMessage({ input, timestamp: lastTime });
     }
-    if(!isApplePlatform()){
+    if (!isApplePlatform()){
         video.requestVideoFrameCallback(processFrame);
     }
 }
