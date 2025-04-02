@@ -2,29 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ME-rPPG Demo</title>
+    <title>ME-rPPG Web Inference Demo</title>
     <script src="https://cdn.bootcdn.net/ajax/libs/vConsole/3.15.0/vconsole.min.js"></script>
     <link rel="stylesheet" href="style.css">
     <script type="module" src="./main.js"></script>
 </head>
 <script>var vConsole = new VConsole();</script>
 <body>
-    <video id="videoInput" playsinline webkit-playsinline muted></video>
+    <video id="videoInput" playsinline muted></video>
     <div id="container">
         <div id="sidebar">
-            <div id="title">ME-rPPG Demo</div>
+            <div id="title">ME-rPPG Web Inference Demo</div>
             <div id="description">
-                <p>This application is still under maintenance.</p>
-                <p>Capture your face with your camera on device to measure your heart rate.</p>
-                <p>Press the button to start the measurement.</p>
-                <p>All data is captured and used locally. Feel free with your privacy.</p>
-                <div>
-                    Known issues:
-                    <ul>
-                        <li>iOS device is not supported by now.</li>
-                        <li>Only 30fps camera is supported by now.</li>
-                        <li>Low quality cameras may lead to biased results</li>
-                    </ul>
+                <div class="teaser-container"> <!-- 新增容器 -->
+                    <div class="teaser-image">
+                        <img src="pic0.png">
+                    </div>
+                    <div>
+                    <div>
+                        This web interface is built upon the following open-source work, with its GitHub repository linked below. 
+                    </div>
+                    <div>
+                        The model employs State Space Duality (SSD) from Mamba-2 to achieve both training efficiency and inference efficiency. During the inference phase, it utilizes a step-by-step inference approach that reduces memory consumption to just 4MB and decreases CPU operation latency to 10ms for the first time. This breakthrough enables local inference within web browsers without requiring GPUs.
+                    </div>
+                    </div>
                 </div>
             </div>
             <div id="controlPanel">
@@ -74,6 +75,16 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div class="image-container">
+            <div class="image-wrapper">
+                <img src="pic1.png">
+            </div>
+            <div class="image-wrapper">
+                <a href="https://pi.cs.tsinghua.edu.cn/">
+                    <img src="pic2.png">
+                </a>
             </div>
         </div>
     </div>

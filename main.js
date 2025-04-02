@@ -223,8 +223,10 @@ let welchCount = 300-90;
 
 let inferenceTimestamp = 0;
 let inferenceCount = 0;
+let inputQueueCount = 0;
 let dropCount = 30;
 onnxWorker.onmessage = (event) => {
+    inputQueueCount--;
     const { output, delay, timestamp } = event.data;
     if (dropCount) return dropCount--;
     if (!kfOutput){
@@ -340,55 +342,57 @@ async function processFrame(now, metadata) {
     }else{
         lastTime = metadata.mediaTime;
     }
-    //console.log(lastTime)
-    timestampArray.push(lastTime);
-    previewCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
+    if (inputQueueCount<5){
+        //console.log(lastTime)
+        timestampArray.push(lastTime);
+        previewCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
 
-    if (!faceDetector) return;
-    
-    const startTimeMs = performance.now();
-    const result = faceDetector.detectForVideo(video, startTimeMs);
-    const detections = result.detections;
+        if (!faceDetector) return;
+        
+        const startTimeMs = performance.now();
+        const result = faceDetector.detectForVideo(video, startTimeMs);
+        const detections = result.detections;
 
-    if (detections && detections.length > 0) {
-        const detection = detections[0];
-        const rawBoundingBox = detection.boundingBox;
-        if (!kfOriginX){
-            const processNoise = 1e-2;
-            const measurementNoise = 5e-1;
-            kfOriginX = new KalmanFilter1D(processNoise, measurementNoise, rawBoundingBox.originX, 1);
-            kfOriginY = new KalmanFilter1D(processNoise, measurementNoise, rawBoundingBox.originY, 1);
-            kfWidth = new KalmanFilter1D(processNoise, measurementNoise, rawBoundingBox.width, 1);
-            kfHeight = new KalmanFilter1D(processNoise, measurementNoise, rawBoundingBox.height, 1);
-        }else{
-            kfOriginX.update(rawBoundingBox.originX);
-            kfOriginY.update(rawBoundingBox.originY);
-            kfWidth.update(rawBoundingBox.width);
-            kfHeight.update(rawBoundingBox.height);
+        if (detections && detections.length > 0) {
+            const detection = detections[0];
+            const rawBoundingBox = detection.boundingBox;
+            if (!kfOriginX){
+                const processNoise = 1e-2;
+                const measurementNoise = 5e-1;
+                kfOriginX = new KalmanFilter1D(processNoise, measurementNoise, rawBoundingBox.originX, 1);
+                kfOriginY = new KalmanFilter1D(processNoise, measurementNoise, rawBoundingBox.originY, 1);
+                kfWidth = new KalmanFilter1D(processNoise, measurementNoise, rawBoundingBox.width, 1);
+                kfHeight = new KalmanFilter1D(processNoise, measurementNoise, rawBoundingBox.height, 1);
+            }else{
+                kfOriginX.update(rawBoundingBox.originX);
+                kfOriginY.update(rawBoundingBox.originY);
+                kfWidth.update(rawBoundingBox.width);
+                kfHeight.update(rawBoundingBox.height);
+            }
+            const filteredBoundingBox = {
+                originX: kfOriginX.estimate,
+                originY: kfOriginY.estimate,
+                width: kfWidth.estimate,
+                height: kfHeight.estimate
+            };
+            filteredBoundingBox.height *= 1.2;
+            filteredBoundingBox.originY -= filteredBoundingBox.height * 0.2;
+            detection.boundingBox = filteredBoundingBox;
+            const faceImage = cropAndResizeUsingBoundingBox(previewCanvas, detection.boundingBox);
+            drawBoundingBox(detection.boundingBox);
+            const ctx = faceImage.getContext("2d");
+            const imageData = ctx.getImageData(0, 0, 36, 36);
+            const input = new Float32Array(36 * 36 * 3);
+            
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                const index = i / 4;
+                input[index * 3] = imageData.data[i] / 255;
+                input[index * 3 + 1] = imageData.data[i + 1] / 255;
+                input[index * 3 + 2] = imageData.data[i + 2] / 255;
+            }
+            inputQueueCount += 1;
+            onnxWorker.postMessage({ input, timestamp: lastTime });
         }
-        const filteredBoundingBox = {
-            originX: kfOriginX.estimate,
-            originY: kfOriginY.estimate,
-            width: kfWidth.estimate,
-            height: kfHeight.estimate
-        };
-        filteredBoundingBox.height *= 1.2;
-        filteredBoundingBox.originY -= filteredBoundingBox.height * 0.2;
-        detection.boundingBox = filteredBoundingBox;
-        const faceImage = cropAndResizeUsingBoundingBox(previewCanvas, detection.boundingBox);
-        drawBoundingBox(detection.boundingBox);
-        const ctx = faceImage.getContext("2d");
-        const imageData = ctx.getImageData(0, 0, 36, 36);
-        const input = new Float32Array(36 * 36 * 3);
-        
-        for (let i = 0; i < imageData.data.length; i += 4) {
-            const index = i / 4;
-            input[index * 3] = imageData.data[i] / 255;
-            input[index * 3 + 1] = imageData.data[i + 1] / 255;
-            input[index * 3 + 2] = imageData.data[i + 2] / 255;
-        }
-        
-        onnxWorker.postMessage({ input, timestamp: lastTime });
     }
     if(!isApplePlatform()){
         video.requestVideoFrameCallback(processFrame);
