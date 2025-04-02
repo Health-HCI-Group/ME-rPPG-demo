@@ -46,9 +46,9 @@ self.onmessage = async (event) => {
         return;
     }
     const startTime = Date.now();
-    const { input, timestamp } = event.data;
+    const { input, timestamp, lambda } = event.data;
     const inputData = new ort.Tensor("float32", input, [1, 1, 36, 36, 3]);
-    const dt = new ort.Tensor("float32", [Math.max((lastTimestamp ? (timestamp - lastTimestamp)*2 : 1 / 30), 1/90)], []);
+    const dt = new ort.Tensor("float32", [Math.max((lastTimestamp ? (timestamp - lastTimestamp) / lambda : 1 / 30), 1/90)], []);
     lastTimestamp = timestamp;
     const feeds = {};
     feeds[onnxSession.inputNames[0]] = inputData;

@@ -7,7 +7,8 @@
     <list default="true" id="bc6131f1-7bb4-443c-9616-b9241a3f24ec" name="更改" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotWorker.js" beforeDir="false" afterPath="$PROJECT_DIR$/plotWorker.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/onnxWorker.js" beforeDir="false" afterPath="$PROJECT_DIR$/onnxWorker.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/style.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -99,7 +100,7 @@
       <workItem from="1742988757736" duration="9000" />
       <workItem from="1742988770789" duration="43000" />
       <workItem from="1743589024625" duration="275000" />
-      <workItem from="1743594345452" duration="4957000" />
+      <workItem from="1743594345452" duration="9470000" />
     </task>
     <servers />
   </component>

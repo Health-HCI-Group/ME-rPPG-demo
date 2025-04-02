@@ -3,32 +3,32 @@
 * The pipeline and MediaPipe processing (MediaPipe does not work in WebWorkers)
 * */
 
-document.getElementById("authorization").addEventListener("click", () => {
-    navigator.mediaDevices.getUserMedia({
-        video: true,
-    }).then((stream) => {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            location.reload();
-        }
-    });
-});
+// document.getElementById("authorization").addEventListener("click", () => {
+//     navigator.mediaDevices.getUserMedia({
+//         video: true,
+//     }).then((stream) => {
+//         if (stream) {
+//             stream.getTracks().forEach(track => track.stop());
+//             location.reload();
+//         }
+//     });
+// });
 
-const cameraSelect = document.getElementById("cameraSelectDropdown");
+// const cameraSelect = document.getElementById("cameraSelectDropdown");
 
-async function getCameraList() {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const videoDevices = devices.filter(device => device.kind === "videoinput");
-    cameraSelect.options.length = 0;
-    videoDevices.forEach((device) => {
-        cameraSelect.options.add(new Option(device.label, device.deviceId));
-    });
-}
-
-getCameraList().then(() => {
-    cameraReady = true;
-    cameraButton.disabled = !ready();
-});
+// async function getCameraList() {
+//     const devices = await navigator.mediaDevices.enumerateDevices();
+//     const videoDevices = devices.filter(device => device.kind === "videoinput");
+//     cameraSelect.options.length = 0;
+//     videoDevices.forEach((device) => {
+//         cameraSelect.options.add(new Option(device.label, device.deviceId));
+//     });
+// }
+//
+// getCameraList().then(() => {
+//     cameraReady = true;
+//     cameraButton.disabled = !ready();
+// });
 
 const cameraButton = document.getElementById("switchButton");
 const previewCanvas = document.getElementById("previewCanvas");
@@ -42,15 +42,25 @@ const inferenceDelayValue = document.getElementById("inferenceDelayValue");
 const heartRateValue = document.getElementById("heartRateValue");
 heartRateValue.style.color = "blue";
 const inferenceFpsValue = document.getElementById("inferenceFpsValue");
+const lambdaValue = document.getElementById("lambdaValue");
+const lambdaValueDisplay = document.getElementById("lambdaValueDisplay");
+
+let lambda = 1;
+
+lambdaValue.addEventListener("input", (event) => {
+    lambda = Math.pow(10, parseFloat(event.target.value));
+    lambdaValueDisplay.innerText = `${lambda.toFixed(3)}`;
+});
 
 let video = null;
 
-let cameraReady = false;
+// let cameraReady = false;
 let modelReady = false;
 let stateReady = false;
 let welchReady = false;
 let hrReady = false;
-const ready = () => cameraReady && modelReady && stateReady && welchReady && hrReady;
+// const ready = () => cameraReady && modelReady && stateReady && welchReady && hrReady;
+const ready = () => modelReady && stateReady && welchReady && hrReady;
 
 const isApplePlatform = () => {
     const isApple = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
@@ -120,35 +130,35 @@ async function initFaceDetector() {
 
 initFaceDetector().then();
 
-function startCamera() {
-    try {
-        dropCount = 30;
-        navigator.mediaDevices.getUserMedia({
-            video: {
-                deviceId: {
-                    exact: cameraSelect.value ?? "default",
-                },
-                width: {
-                    ideal: 640,
-                },
-                height: {
-                    ideal: 480,
-                },
-                frameRate: 30,
-            },
-            audio: false,
-        }).then((mediaStream) => {
-            stream = mediaStream;
-            video.srcObject = stream;
-            isCameraOn = true;
-            cameraButton.textContent = "Stop";
-            rafHandle = video.requestVideoFrameCallback(processFrame);
-        });
-    } catch (error) {
-        console.error("Error accessing camera:", error);
-        alert("Unable to start camera");
-    }
-}
+// function startCamera() {
+//     try {
+//         dropCount = 30;
+//         navigator.mediaDevices.getUserMedia({
+//             video: {
+//                 deviceId: {
+//                     exact: cameraSelect.value ?? "default",
+//                 },
+//                 width: {
+//                     ideal: 640,
+//                 },
+//                 height: {
+//                     ideal: 480,
+//                 },
+//                 frameRate: 30,
+//             },
+//             audio: false,
+//         }).then((mediaStream) => {
+//             stream = mediaStream;
+//             video.srcObject = stream;
+//             isCameraOn = true;
+//             cameraButton.textContent = "Stop";
+//             rafHandle = video.requestVideoFrameCallback(processFrame);
+//         });
+//     } catch (error) {
+//         console.error("Error accessing camera:", error);
+//         alert("Unable to start camera");
+//     }
+// }
 
 
 function stopCamera() {
@@ -373,7 +383,7 @@ welchWorker.onmessage = (event) => {
     } else {
         kfHr.update(hr);
     }
-    MeanHRErr = 0.8 * MeanHRErr + 0.2 * Math.abs(kfHr.estimate-hr) / hr;
+    MeanHRErr = 0.8 * MeanHRErr + 0.2 * Math.abs(kfHr.estimate - hr) / hr;
     //console.log(MeanHRErr);
     if ((MeanHRErr < 0.02) && (heartRateValue.style.color === "blue")){
         heartRateValue.style.color = "red";
@@ -441,7 +451,7 @@ async function processFrame(now, metadata) {
         previewCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
 
         if (!faceDetector) return;
-        
+
         const startTimeMs = performance.now();
         const result = faceDetector.detectForVideo(video, startTimeMs);
         const detections = result.detections;
@@ -476,7 +486,7 @@ async function processFrame(now, metadata) {
             const ctx = faceImage.getContext("2d");
             const imageData = ctx.getImageData(0, 0, 36, 36);
             const input = new Float32Array(36 * 36 * 3);
-            
+
             for (let i = 0; i < imageData.data.length; i += 4) {
                 const index = i / 4;
                 input[index * 3] = imageData.data[i] / 255;
@@ -484,7 +494,7 @@ async function processFrame(now, metadata) {
                 input[index * 3 + 2] = imageData.data[i + 2] / 255;
             }
             inputQueueCount += 1;
-            onnxWorker.postMessage({ input, timestamp: lastTime });
+            onnxWorker.postMessage({ type: "data", input, timestamp: lastTime, lambda });
         }
     }
     if (!isApplePlatform()){

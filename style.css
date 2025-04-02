@@ -61,7 +61,7 @@ body {
     padding: 1.5rem;
     border-radius: 8px;
     border: 1px solid #eee;
-    max-width: 640px;
+    max-width: 680px;
 }
 
 #description ul {
@@ -75,6 +75,7 @@ body {
 
 #controlPanel {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     margin: 0.5rem 0;
@@ -82,17 +83,30 @@ body {
     gap: 0.5rem;
 }
 
-#authorization {
-    background: var(--secondary-color);
-    color: white;
-    padding: 0.5rem 0.5rem;
-    font-size: 1.1rem;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+#controlParams {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
 }
+
+#lambdaInput {
+    display: flex;
+    flex-direction: row;
+    gap: 0.2rem;
+}
+
+/*#authorization {*/
+/*    background: var(--secondary-color);*/
+/*    color: white;*/
+/*    padding: 0.5rem 0.5rem;*/
+/*    font-size: 1.1rem;*/
+/*    border-radius: 8px;*/
+/*    border: none;*/
+/*    cursor: pointer;*/
+/*    transition: all 0.2s ease;*/
+/*    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);*/
+/*}*/
 
 #switchButton {
     background: var(--primary-color);
@@ -104,22 +118,23 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 90%;
 }
 
-#cameraSelectDropdown {
-    background: var(--secondary-color);
-    color: white;
-    padding: 0.5rem 0.5rem;
-    font-size: 1.1rem;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    option {
-        background-color: #606060;
-    }
-}
+/*#cameraSelectDropdown {*/
+/*    background: var(--secondary-color);*/
+/*    color: white;*/
+/*    padding: 0.5rem 0.5rem;*/
+/*    font-size: 1.1rem;*/
+/*    border-radius: 8px;*/
+/*    border: none;*/
+/*    cursor: pointer;*/
+/*    transition: all 0.2s ease;*/
+/*    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);*/
+/*    option {*/
+/*        background-color: #606060;*/
+/*    }*/
+/*}*/
 
 #switchButton:hover {
     background: #1976D2;
@@ -128,7 +143,7 @@ body {
 }
 
 #textDisplay {
-    flex: 1;
+    display: flex;
     min-height: 0; /* 允许内容压缩 */
 }
 
@@ -138,8 +153,8 @@ body {
     width: 100%;
 }
 
-.textValue {
-    min-width: 2rem;
+.value-box, .numeralValue {
+    width: 2rem;
 }
 
 #viewPanel {
@@ -167,9 +182,10 @@ body {
 }
 
 #previewTitle {
+    display: flex;
     color: var(--secondary-color);
     font-size: 1.4rem;
-    font-weight: 600;
+    /*font-weight: 600;*/
     margin-bottom: 1rem;
     width: 36rem;
 }
@@ -332,9 +348,9 @@ body {
 
 .teaser-container {
     display: flex;
-    margin-bottom: 1.5rem;
+    /*margin-bottom: 1.5rem;*/
     align-items: flex-start;
-    max-width: 640px;
+    max-width: 720px;
 }
 
 .teaser-image img {
