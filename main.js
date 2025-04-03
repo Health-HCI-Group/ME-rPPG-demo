@@ -368,11 +368,26 @@ welchWorker.onmessage = (event) => {
     }
     let { hr } = event.data;
     if (timestampArray.length > 300){
-        const startTime = timestampArray[timestampArray.length - 301];
-        const endTime = timestampArray[timestampArray.length - 1];
-        const duration = endTime - startTime;
-        const averageFps = 300 / duration;
-        hr = hr / 30 * averageFps;
+        const recentTimestamps = timestampArray.slice(-301);
+
+        let totalDuration = 0;
+        let validIntervals = 0;
+
+        for (let i = 1; i < recentTimestamps.length; i++) {
+            const delta = recentTimestamps[i] - recentTimestamps[i - 1];
+            
+            if (delta <= 0.5) {
+                totalDuration += delta;
+                validIntervals++;
+            }
+        }
+
+        const averageFps = totalDuration > 0 
+            ? (validIntervals / totalDuration)
+            : 0;
+
+        console.log(averageFps)
+        hr = (hr / 30) * averageFps;
     } else {
         heartRateValue.style.color = "blue";
     }
