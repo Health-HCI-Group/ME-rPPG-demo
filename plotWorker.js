@@ -9,7 +9,7 @@ function drawPlot() {
     ctx.strokeStyle = "#000000";
     ctx.fillStyle = "#000000";
     ctx.font = "20px Arial";
-    const axisPadding = 50;
+    const axisPadding = 5;
     const axisWidth = canvas.width - 2 * axisPadding;
     const axisHeight = canvas.height - 2 * axisPadding;
 

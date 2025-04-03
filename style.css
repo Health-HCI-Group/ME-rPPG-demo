@@ -17,22 +17,26 @@ body {
     background-color: var(--background);
     color: var(--text-primary);
     line-height: 1.6;
-    min-height: 80vh;
+    /*min-height: 80vh;*/
+    /*min-width: 800px;*/
 }
 
 #container {
     display: flex;
     flex-wrap: wrap; /* 允许换行 */
-    gap: 2rem;
+    gap: 0.5rem;
     max-width: 1600px;
     margin: 0 auto;
+    padding-bottom: 5rem;
+    justify-content: center;
 }
 
 #sidebar {
-    flex: 1 1 var(--sidebar-width);
-    min-width: 300px; /* 最小宽度 */
+    /*flex: 1 1 var(--sidebar-width);*/
+    /*min-width: 300px; !* 最小宽度 *!*/
     max-width: 100%; /* 移动端限制最大宽度 */
     padding: 1.5rem;
+    justify-items: center;
 }
 
 .canvas-wrapper {
@@ -52,12 +56,12 @@ body {
 #description {
     color: var(--text-secondary);
     font-size: 0.95rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     background: #f8f9fa;
     padding: 1.5rem;
     border-radius: 8px;
     border: 1px solid #eee;
-    max-width: 640px;
+    max-width: 680px;
 }
 
 #description ul {
@@ -71,13 +75,40 @@ body {
 
 #controlPanel {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin: 2rem 0;
+    margin: 0.5rem 0;
     width: 100%;
+    gap: 0.5rem;
 }
 
-.controlButtons {
+#controlParams {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
+}
+
+#lambdaInput {
+    display: flex;
+    flex-direction: row;
+    gap: 0.2rem;
+}
+
+/*#authorization {*/
+/*    background: var(--secondary-color);*/
+/*    color: white;*/
+/*    padding: 0.5rem 0.5rem;*/
+/*    font-size: 1.1rem;*/
+/*    border-radius: 8px;*/
+/*    border: none;*/
+/*    cursor: pointer;*/
+/*    transition: all 0.2s ease;*/
+/*    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);*/
+/*}*/
+
+#switchButton {
     background: var(--primary-color);
     color: white;
     padding: 1rem 2rem;
@@ -87,16 +118,32 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 90%;
 }
 
-.controlButtons:hover {
+/*#cameraSelectDropdown {*/
+/*    background: var(--secondary-color);*/
+/*    color: white;*/
+/*    padding: 0.5rem 0.5rem;*/
+/*    font-size: 1.1rem;*/
+/*    border-radius: 8px;*/
+/*    border: none;*/
+/*    cursor: pointer;*/
+/*    transition: all 0.2s ease;*/
+/*    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);*/
+/*    option {*/
+/*        background-color: #606060;*/
+/*    }*/
+/*}*/
+
+#switchButton:hover {
     background: #1976D2;
     transform: translateY(-1px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 #textDisplay {
-    flex: 1;
+    display: flex;
     min-height: 0; /* 允许内容压缩 */
 }
 
@@ -106,14 +153,15 @@ body {
     width: 100%;
 }
 
-.textValue {
-    min-width: 2rem;
+.value-box, .numeralValue {
+    width: 2rem;
 }
 
 #viewPanel {
     display: flex;
     flex-direction: column;
     height: 100%;
+    padding: 1.5rem;
 }
 
 #cameraDisplay {
@@ -121,6 +169,7 @@ body {
     flex-direction: column;
     max-width: 100%;
     box-sizing: border-box;
+    padding-bottom: 1rem;
 }
 
 #videoInput {
@@ -133,11 +182,12 @@ body {
 }
 
 #previewTitle {
+    display: flex;
     color: var(--secondary-color);
     font-size: 1.4rem;
-    font-weight: 600;
+    /*font-weight: 600;*/
     margin-bottom: 1rem;
-    width: 100%;
+    width: 36rem;
 }
 
 #plotContent {
@@ -189,8 +239,10 @@ body {
 
 .canvas-wrapper {
     position: relative;
-    width: 640px;  /* 与视频分辨率匹配 */
-    height: 480px;
+    /*width: 640px;  !* 与视频分辨率匹配 *!*/
+    /*height: 480px;*/
+    width: 480px;
+    height: 360px;
     margin: 0 auto; /* 居中显示 */
 }
 
@@ -203,8 +255,8 @@ body {
     height: 100% !important;
     object-fit: contain; /* 保持原始比例 */
 }
-  
-  .status-bar {
+
+.status-bar {
     flex-wrap: wrap;
     display: flex;
     gap: 20px;
@@ -233,28 +285,16 @@ body {
     margin-left: 0.2em;
 }
 
-@media (max-width: 1200px) {
-    #container {
-        flex-direction: column;
-    }
-    
-    #sidebar, #viewPanel {
-        flex: none;
-        width: 100%;
-        max-width: 100%;
-    }
-}
-
 @media (max-width: 768px) {
     body {
         padding: 10px;
     }
-    
+
     .status-bar {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .canvas-wrapper {
         padding-top: 100%; /* 移动端改为正方形比例 */
     }
@@ -264,12 +304,12 @@ body {
     #sidebar {
         padding: 1rem;
     }
-    
+
     .controlButtons {
         width: 100%;
         padding: 12px;
     }
-    
+
     #plotCanvas {
         height: 150px;
     }
@@ -282,14 +322,14 @@ body {
     right: 0;
     display: flex;
     justify-content: center;
-    gap: 20px; /* 控制图片间距 */
-    padding: 20px;
+    gap: 2rem; /* 控制图片间距 */
+    padding: 2px;
     background: #f0f0f0; /* 底部背景色 */
 }
 
 .image-wrapper {
-    width: 300px; /* 控制图片显示宽度 */
-    height: 200px; /* 控制图片显示高度 */
+    width: 12rem; /* 控制图片显示宽度 */
+    height: 6rem; /* 控制图片显示高度 */
 }
 
 .image-wrapper img {
@@ -308,11 +348,10 @@ body {
 
 .teaser-container {
     display: flex;
-    margin-bottom: 1.5rem;
+    /*margin-bottom: 1.5rem;*/
     align-items: flex-start;
-    max-width: 640px;
+    max-width: 720px;
 }
-
 
 .teaser-image img {
     width: 100%;
