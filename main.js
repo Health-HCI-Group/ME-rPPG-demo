@@ -163,6 +163,7 @@ initFaceDetector().then();
 
 function stopCamera() {
     console.log("stop");
+    isCameraOn = false;
     if (stream) {
         stream.getTracks().forEach(track => {
             track.stop();
@@ -180,7 +181,6 @@ function stopCamera() {
         });
     }
     video.srcObject = null;
-    isCameraOn = false;
     cameraButton.textContent = "Start";
     previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
     const overlayCtx = overlayCanvas.getContext("2d");
@@ -417,32 +417,22 @@ function cropAndResizeUsingBoundingBox(canvas, boundingBox) {
 }
 
 let lastTime = 0;
-
+let mediaTime = 0;
 async function processFrame(now, metadata) {
-    if (!isCameraOn) return;
-    // if (lastTime === metadata.mediaTime) return;
     // lastTime = metadata.mediaTime;
-
-    if (!metadata) {
-        metadata = {
-          mediaTime: video.currentTime,
-          presentedFrames: 0,
-          width: video.videoWidth,
-          height: video.videoHeight
-        };
-    }
-
     if (!isCameraOn) {
         console.log('Camera not on');
         return;
     }
     //console.log('New frame', lastTime, metadata.mediaTime);
     if (isApplePlatform()) {
-        lastTime = now / 1000;
+        mediaTime = now / 1000;
     } else {
         //lastTime = metadata.mediaTime;
-        lastTime = performance.now()/1000
+        mediaTime = performance.now()/1000
     }
+    if(Math.abs(mediaTime-lastTime)<0.01) return;
+    lastTime = mediaTime;
     if (inputQueueCount<5){
         //console.log(lastTime)
         timestampArray.push(lastTime);
