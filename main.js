@@ -430,7 +430,8 @@ async function processFrame(now, metadata) {
     if (isApplePlatform()) {
         lastTime = now / 1000;
     } else {
-        lastTime = metadata.mediaTime;
+        //lastTime = metadata.mediaTime;
+        lastTime = performance.now()/1000
     }
     if (inputQueueCount<5){
         //console.log(lastTime)
