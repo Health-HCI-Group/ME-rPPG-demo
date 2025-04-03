@@ -108,7 +108,7 @@ async function initializeFaceDetector() {
     faceDetector = await FaceDetector.createFromOptions(vision, {
         baseOptions: {
             modelAssetPath: `blaze_face_short_range.tflite`,
-            delegate: "GPU",
+            delegate: "CPU",
         },
         runningMode: "VIDEO",
         minDetectionConfidence: 0.5,

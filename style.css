@@ -200,7 +200,7 @@ body {
     display: block; /* 避免 canvas 默认 inline 间隙 */
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
     #container {
         flex-direction: column;
         padding: 1rem;
