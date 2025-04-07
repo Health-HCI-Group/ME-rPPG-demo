@@ -446,7 +446,6 @@ async function processFrame(now, metadata) {
         //lastTime = metadata.mediaTime;
         mediaTime = performance.now()/1000
     }
-    if(Math.abs(mediaTime-lastTime)<0.01) return;
     lastTime = mediaTime;
     if (inputQueueCount<5){
         //console.log(lastTime)
@@ -504,7 +503,7 @@ async function processFrame(now, metadata) {
         }
     }
     if (!isApplePlatform()){
-        video.requestVideoFrameCallback(processFrame);
+        rafHandle = video.requestVideoFrameCallback(processFrame);
     }
 }
 
