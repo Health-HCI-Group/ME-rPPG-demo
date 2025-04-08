@@ -1,9 +1,9 @@
-importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
+importScripts("https://fastly.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
 
 let welchSession;
 let hrSession;
 
-ort.env.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/";
+ort.env.wasm.wasmPaths = "https://fastly.jsdelivr.net/npm/onnxruntime-web/dist/";
 
 ort.InferenceSession.create("welch_psd.onnx", {
     executionProviders: ["wasm"],

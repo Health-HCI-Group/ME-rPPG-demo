@@ -70,7 +70,7 @@ const isApplePlatform = () => {
 
 //const isApplePlatform = () => true
 
-import { FaceDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.4";
+import { FaceDetector, FilesetResolver } from "https://fastly.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.4";
 
 class KalmanFilter1D {
     constructor(processNoise, measurementNoise, initialState, initialEstimateError) {
@@ -103,7 +103,7 @@ let faceDetector = null;
 
 async function initializeFaceDetector() {
     const vision = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.4/wasm"
+        "https://fastly.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.4/wasm"
     );
     faceDetector = await FaceDetector.createFromOptions(vision, {
         baseOptions: {
