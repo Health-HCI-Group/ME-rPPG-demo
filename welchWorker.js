@@ -1,4 +1,4 @@
-importScripts("https://fastly.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.min.js");
+importScripts("https://fastly.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
 
 let welchSession;
 let hrSession;

@@ -68,7 +68,7 @@ const isApplePlatform = () => {
     return isApple || !supportsRVFC;
 };
 
-// const isApplePlatform = () => true
+//const isApplePlatform = () => true
 
 import { FaceDetector, FilesetResolver } from "https://fastly.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.4";
 
