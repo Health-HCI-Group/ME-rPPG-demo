@@ -3,7 +3,7 @@ Our fully optimized web deployment is available here, which implements multi-thr
 [https://rppgdemo.kegang.wang/](https://rppgdemo.kegang.wang/) 
 
 ## Deployment Guidelines 
-Ensure you possess a registered domain name with corresponding SSL certificates, as certain devices only permit camera access through HTTPS-enabled webpages.
+Ensure you possess a registered domain name with corresponding SSL certificates, as certain devices only permit camera access through HTTPS-enabled webpages.  
 Configure Nginx with the following HTTP headers:  
 `add_header Cross-Origin-Opener-Policy same-origin always;`  
 `add_header Cross-Origin-Embedder-Policy require-corp always;`  
