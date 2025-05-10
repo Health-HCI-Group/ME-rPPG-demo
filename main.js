@@ -62,13 +62,18 @@ let hrReady = false;
 // const ready = () => cameraReady && modelReady && stateReady && welchReady && hrReady;
 const ready = () => modelReady && stateReady && welchReady && hrReady;
 
+// const isApplePlatform = () => {
+//     const isApple = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
+//     // const isApple = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+//     const supportsRVFC = 'requestVideoFrameCallback' in HTMLVideoElement.prototype;
+//     return isApple || !supportsRVFC;
+//     // return !('requestVideoFrameCallback' in HTMLVideoElement.prototype);
+// };
+
 const isApplePlatform = () => {
-    const isApple = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
-    // const isApple = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    const supportsRVFC = 'requestVideoFrameCallback' in HTMLVideoElement.prototype;
-    return isApple || !supportsRVFC;
-    // return !('requestVideoFrameCallback' in HTMLVideoElement.prototype);
-};
+    const isWindows = /Win(dows|32|64|NT|10|CE)/i.test(navigator.userAgent);
+    return !isWindows;
+  };
 
 console.log(`isApplePlatform: ${!!isApplePlatform()}`);
 
