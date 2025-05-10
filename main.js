@@ -71,9 +71,10 @@ const ready = () => modelReady && stateReady && welchReady && hrReady;
 // };
 
 const isApplePlatform = () => {
-    const isWindows = /Win(dows|32|64|NT|10|CE)/i.test(navigator.userAgent);
-    return !isWindows;
-  };
+    const supportsRVFC = 'requestVideoFrameCallback' in HTMLVideoElement.prototype;
+      const isWindows = /Win(dows|32|64|NT|10|CE)/i.test(navigator.userAgent);
+      return !isWindows || !supportsRVFC;
+};
 
 console.log(`isApplePlatform: ${!!isApplePlatform()}`);
 
