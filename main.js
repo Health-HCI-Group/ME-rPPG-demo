@@ -64,10 +64,8 @@ const ready = () => modelReady && stateReady && welchReady && hrReady;
 
 const isApplePlatform = () => {
     const isApple = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
-    // const isApple = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const supportsRVFC = 'requestVideoFrameCallback' in HTMLVideoElement.prototype;
     return isApple || !supportsRVFC;
-    // return !('requestVideoFrameCallback' in HTMLVideoElement.prototype);
 };
 
 // const isApplePlatform = () => true
